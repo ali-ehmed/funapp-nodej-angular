@@ -1,0 +1,13 @@
+{
+  "name": "sredio-task-app",
+  "version": "1.0.0",
+  "scripts": {
+    "start:frontend": "cd frontend && ng serve",
+    "start:backend": "node backend/server.js",
+    "start:db": "docker-compose up",
+    "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
