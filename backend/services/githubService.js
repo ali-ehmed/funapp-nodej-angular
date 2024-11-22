@@ -1,6 +1,7 @@
 const axios = require('axios');
 
-const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${process.env.GITHUB_CLIENT_ID}&redirect_uri=${process.env.GITHUB_REDIRECT_URI}&scope=user&prompt=login`;
+const redirectUri = 'http://localhost:3000/auth/github/callback';
+const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${process.env.GITHUB_CLIENT_ID}&redirect_uri=${redirectUri}&scope=user&prompt=login`;
 
 const exchangeCodeForToken = async (code) => {
   try {
@@ -9,7 +10,7 @@ const exchangeCodeForToken = async (code) => {
         client_id: process.env.GITHUB_CLIENT_ID,
         client_secret: process.env.GITHUB_CLIENT_SECRET,
         code,
-        redirect_uri: process.env.GITHUB_REDIRECT_URI,
+        redirect_uri: redirectUri,
       },
       headers: {
         'Accept': 'application/json',
