@@ -14,7 +14,13 @@ const connectDB = require('./config/db');
 const app = express();
 
 // Middleware setup
-app.use(cors());
+const corsOptions = {
+  origin: 'http://localhost:4200', // Allow requests from Angular app
+  methods: 'GET,POST,PUT,DELETE', // Allow these HTTP methods
+  allowedHeaders: 'Content-Type, Authorization', // Allow these headers
+  credentials: true, // Allow cookies to be sent
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 

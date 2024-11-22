@@ -1,32 +1,27 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable()
 export class AuthService {
-  private isAuthenticated = false;
-  private connectionDetails = {
-    username: '',
-    connectedAt: '',
-  };
+  constructor(private http: HttpClient) {}
 
-  constructor() {}
+  private apiUrl = environment.apiUrl;
 
-  // Check if the user is authenticated
-  getAuthStatus(): boolean {
-    return this.isAuthenticated;
+  public redirectUrl = `${this.apiUrl}/auth/github`;
+
+  // Check if the user is authenticated by calling the backend /check-auth endpoint
+  checkAuthInfo(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/api/auth/check-auth`, {
+      withCredentials: true, // Send HTTP-only cookies automatically
+    });
   }
 
-  // Simulate connecting the user
-  connect(): void {
-    this.isAuthenticated = true;
-    this.connectionDetails = {
-      username: 'GithubUser', // Placeholder username
-      connectedAt: new Date().toLocaleString(),
-    };
-  }
-
-  // Get connection details
-  getConnectionDetails() {
-    return this.connectionDetails;
+  // Log out the user
+  disconnect(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/api/auth/logout`, {
+      withCredentials: true, // Send HTTP-only cookies automatically
+    });
   }
 }
- 

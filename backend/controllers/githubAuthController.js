@@ -6,7 +6,7 @@ exports.githubAuth = (req, res) => {
   const redirectUri = process.env.GITHUB_REDIRECT_URI;
   const clientId = process.env.GITHUB_CLIENT_ID;
   
-  const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user`;
+  const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user&prompt=login`;
   
   res.redirect(githubAuthUrl);
 }
@@ -33,13 +33,12 @@ exports.githubCallback = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       maxAge: 3600000, // 1 hour
-      sameSite: 'None', // For cross-origin cookies
     });
 
-    // Redirect or send a response
-    res.status(200).send();
+    // Redirect to frontend
+    res.redirect(process.env.FRONTEND_URL);
   } catch (error) {
     console.error('Error during callback:', error);
-    res.status(500).json({ message: 'Authentication failed' });
+    res.redirect(process.env.FRONTEND_URL + '/error');
   }
 };
