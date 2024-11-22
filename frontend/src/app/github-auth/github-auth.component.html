@@ -29,15 +29,17 @@
     <div class="flex w-full justify-between items-center">
         <div class="flex flex-col gap-3">
             <div class="flex items-center gap-3">
-                <img [src]="user.avatarUrl" alt="Avatar" class="rounded-full w-12 h-12 mt-2">
-                <h2 class="text-2xl font-semibold">{{ user.username }}</h2>
+                <img [src]="user.avatarUrl" alt="Avatar" class="rounded-full w-10 h-10 mt-2">
+                <h2 class="text-xl font-semibold">{{ user.username }}</h2>
             </div>
             <div class="flex items-center gap-3">
+                <span class="text-green-500">Connected</span>
+                |
                 <a [href]="user.profileUrl" target="_blank" class="text-blue-500 hover:underline">View Profile</a>
                 |
                 <!-- Display connection time -->
-                <p class="flex gap-3 items-center text-gray-500">
-                    <span class="text-green-500">Connected</span> <span class="text-sm">{{ connectedAt }}</span>
+                <p class="text-gray-500">
+                    Time: <span class="text-sm">{{ connectedAt }}</span>
                 </p>
             </div>
         </div>

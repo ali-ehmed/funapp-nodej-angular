@@ -1,5 +1,7 @@
 const axios = require('axios');
 
+const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${process.env.GITHUB_CLIENT_ID}&redirect_uri=${process.env.GITHUB_REDIRECT_URI}&scope=user&prompt=login`;
+
 const exchangeCodeForToken = async (code) => {
   try {
     const { data } = await axios.post('https://github.com/login/oauth/access_token', null, {
@@ -39,4 +41,4 @@ const fetchGitHubUserData = async (accessToken) => {
   }
 };
 
-module.exports = { exchangeCodeForToken, fetchGitHubUserData };
+module.exports = { githubAuthUrl, exchangeCodeForToken, fetchGitHubUserData };

@@ -2,14 +2,7 @@ const GithubService = require('../services/githubService');
 const AuthService = require('../services/authService');
 
 // GitHub OAuth2: Start the authentication flow
-exports.githubAuth = (req, res) => {
-  const redirectUri = process.env.GITHUB_REDIRECT_URI;
-  const clientId = process.env.GITHUB_CLIENT_ID;
-  
-  const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user&prompt=login`;
-  
-  res.redirect(githubAuthUrl);
-}
+exports.githubAuth = (_, res) =>  res.redirect(GithubService.githubAuthUrl);
 
 // GitHub OAuth2: Callback handler after GitHub has authenticated the user
 exports.githubCallback = async (req, res) => {
