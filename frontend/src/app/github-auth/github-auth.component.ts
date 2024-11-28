@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { AuthService } from '../services/auth.service'; // Auth service for interaction with backend
-import { formatConnectionTime } from '../../helpers/githubAuthHelper'; // Helper function to format connection time
+import { AuthService } from '../services/auth.service';
+import { OrgService } from '../services/org.service';
 @Component({
 	selector: 'app-github-auth',
 	templateUrl: './github-auth.component.html',
@@ -8,9 +8,9 @@ import { formatConnectionTime } from '../../helpers/githubAuthHelper'; // Helper
 })
 
 export class GithubAuthComponent implements OnInit {
-	connectedAt: string = '';
+	organizationsData: any[] = [];
 
-	constructor(public authService: AuthService) {}
+	constructor(public authService: AuthService, private orgService: OrgService) {}
 
 	ngOnInit(): void {
 		// Check for the Authorization token in response headers (if it exists in the URL or localStorage)
@@ -21,16 +21,26 @@ export class GithubAuthComponent implements OnInit {
 		this.authService.checkAuthInfo().subscribe(
 			(response) => {
 				this.authService.setAuthData(response.user);
-				this.connectedAt = formatConnectionTime(response.user.connectedAt);
+				this.loadOrgs();
 			},
 			(error) => {
 				if (error.status === 401 || error.status === 403) {
 					this.authService.clearAuthData();
-					this.connectedAt = '';
 				}
 			}
 		);
 	}
+
+	loadOrgs(): void {
+    this.orgService.getOrgs().subscribe(
+      (data) => {
+        this.organizationsData = data.data;  // Store the data in the orgs array
+      },
+      (error) => {
+        console.error('Error loading orgs:', error);
+      }
+    );
+  }
 
 	// Redirect user to backend to authenticate with GitHub
 	connectToGithub(): void {
@@ -40,7 +50,8 @@ export class GithubAuthComponent implements OnInit {
 	disconnectFromGithub(): void {
 		this.authService.disconnect().subscribe(() => {
 			this.authService.clearAuthData();
-			this.connectedAt = '';
 		});
 	}
+
+	syncOrganizations(): void {}
 }

@@ -8,7 +8,7 @@ import { environment } from '../../environments/environment';
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = environment.apiUrl;
+  private apiBaseUrl = environment.apiUrl;
 
   // Observables for isAuthenticated and user
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
@@ -18,13 +18,13 @@ export class AuthService {
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
   public user$ = this.userSubject.asObservable();
 
-  private redirectUrl = `${this.apiUrl}/auth/github`;
+  private redirectUrl = `${this.apiBaseUrl}/auth/github`;
 
   constructor(private http: HttpClient) {}
 
   // Check if the user is authenticated by calling the backend /check-auth endpoint
   checkAuthInfo(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/api/auth/check-auth`, {
+    return this.http.get<any>(`${this.apiBaseUrl}/api/auth/check-auth`, {
       withCredentials: true, // Send HTTP-only cookies automatically
     });
   }
@@ -42,7 +42,7 @@ export class AuthService {
 
   // Log out the user
   disconnect(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/api/auth/logout`, {
+    return this.http.get<any>(`${this.apiBaseUrl}/api/auth/logout`, {
       withCredentials: true, // Send HTTP-only cookies automatically
     }).pipe(
       // Reset auth data upon logout

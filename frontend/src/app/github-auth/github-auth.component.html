@@ -1,44 +1,45 @@
-<!-- If the user is authenticated, show the profile card with disconnect button -->
-<div *ngIf="authService.isAuthenticated$ | async; else notAuthenticated" class="flex p-4 m-6 bg-white rounded-lg shadow-md space-x-4">
-    <!-- Left Side: GitHub Icon and Avatar -->
-    <div class=" flex items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-20 h-20 text-gray-800" fill="currentColor" viewBox="0 0 24 24">
-            <path
-                d="M12 0C5.37 0 0 5.373 0 12c0 5.304 3.438 9.8 8.207 11.387.6.111.793-.261.793-.577v-2.041c-3.338.73-4.042-1.415-4.042-1.415-.546-1.387-1.334-1.757-1.334-1.757-1.089-.746.082-.73.082-.73 1.203.084 1.834 1.236 1.834 1.236 1.07 1.834 2.809 1.304 3.495.997.108-.776.42-1.305.763-1.606-2.665-.306-5.467-1.335-5.467-5.93 0-1.31.468-2.38 1.235-3.22-.123-.306-.535-1.54.117-3.21 0 0 1.008-.322 3.303 1.23a11.518 11.518 0 0 1 6.006 0c2.293-1.553 3.3-1.23 3.3-1.23.655 1.67.244 2.904.12 3.21.77.84 1.235 1.91 1.235 3.22 0 4.61-2.807 5.617-5.479 5.914.432.371.815 1.103.815 2.221v3.293c0 .317.19.694.8.576C20.565 21.796 24 17.304 24 12c0-6.627-5.373-12-12-12z"
-            />
-        </svg>
-    </div>
+<div *ngIf="authService.isAuthenticated$ | async; else notAuthenticated" class="mt-10 flex justify-center">
+    <div class="w-11/12">
+        <github-connected-card
+            *ngIf="(authService.isAuthenticated$ | async)"
+            [connectedUser]="(authService.user$ | async)"
+            (syncOrganizations)="syncOrganizations()"
+            (disconnectFromGithub)="disconnectFromGithub()">
+        </github-connected-card>
 
-    <!-- Right Side: Username, Profile, and Connect Time -->
-    <div class="flex w-full justify-between items-center">
-        <div class="flex flex-col gap-3">
-            <div class="flex items-center gap-3">
-                <img [src]="(authService.user$ | async)?.avatarUrl" alt="Avatar" class="rounded-full w-10 h-10 mt-2">
-                <h2 class="text-xl font-semibold">{{ (authService.user$ | async)?.username }}</h2>
-            </div>
-            <div class="flex items-center gap-3">
-                <span class="text-green-500">Connected</span>
-                |
-                <a [href]="(authService.user$ | async)?.profileUrl" target="_blank" class="text-blue-500 hover:underline">View Profile</a>
-                |
-                <!-- Display connection time -->
-                <p class="text-gray-500">
-                    Time: <span class="text-sm">{{ connectedAt }}</span>
-                </p>
+        <div
+            *ngIf="organizationsData.length > 0; else noOrgData"
+            class="flex justify-center border-t-2 p-10"
+        >
+            <div class="flex flex-col justify-center bg-gray-100 w-4/12">
+                <div class="mb-6">
+                    <h1 class="text-2xl">Organizations</h1>
+                </div>
+                <div class="flex flex-col gap-6">
+                    <div
+                        *ngFor="let org of organizationsData"
+                        class="flex items-center bg-white p-4 rounded-lg shadow-lg"
+                    >
+                        <img [src]="org.avatarUrl" alt="Org Avatar" class="w-16 h-16 rounded-full mr-4">
+                        <div>
+                            <a href="https://github.com/org1" class="text-xl font-semibold text-blue-500 hover:underline">
+                                {{org.name}}
+                            </a>
+                            <p class="text-gray-600 text-sm">Total Repositories: {{org.totalRepositories}}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        
-        <!-- Disconnect button -->
-        <button 
-            (click)="disconnectFromGithub()"
-            class="mt-4 bg-red-600 text-white py-2 px-4 h-10 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">
-            Disconnect
-        </button>
+        <ng-template #noOrgData>
+            <div class="flex justify-center items-center mt-14 gap-5">
+                <h1 class="text-xl">There are no Organizations. Sync now load Organizations.</h1>
+            </div>
+        </ng-template>
     </div>
 </div>
 
 <ng-template #notAuthenticated>
-    <!-- Show Connect Button if not authenticated -->
     <div class="flex justify-center">
         <button
             class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition"
