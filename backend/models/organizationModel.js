@@ -1,14 +1,17 @@
 const mongoose = require("mongoose");
 
-const OrganizationSchema = new mongoose.Schema({
-	githubOrgId: { type: Number, required: true },
-	name: { type: String, required: true },
-	description: { type: String },
-	avatarUrl: { type: String, required: true },
-	user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Reference to the user who is part of this organization
-	repositories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Repository' }], // Repos under the organization
-	members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Member' }], // Members of the organization
-});
+const OrganizationSchema = new mongoose.Schema(
+  {
+    avatarUrl: { type: String, required: true },
+    description: { type: String },
+    githubOrgId: { type: Number, required: true },
+    members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'RepositoryCollaborator' }], // Reference to collaborators in the repositories under the organization
+    name: { type: String, required: true },
+    repositories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Repository' }], // Repos under the organization
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Reference to the user who is owner of this organization
+  },
+  { timestamps: true }
+);
 
 OrganizationSchema.statics.createOrUpdateOrganization = async function (orgData, userId) {
   // Find the organization by both githubOrgId and userId
@@ -28,7 +31,6 @@ OrganizationSchema.statics.createOrUpdateOrganization = async function (orgData,
 
   return organization; // Return the created or updated organization
 };
-
 
 const Organization = mongoose.model('Organization', OrganizationSchema);
 
