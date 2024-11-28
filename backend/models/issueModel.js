@@ -1,24 +1,14 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-const issueSchema = new mongoose.Schema(
-	{
-		repoId: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: "Repository",
-			required: true,
-		},
-		issueId: { type: Number, required: true },
-		title: { type: String, required: true },
-		state: { type: String, required: true },
-		createdAt: { type: Date, required: true },
-		updatedAt: { type: Date, required: true },
-		body: { type: String, default: "" },
-	},
-	{
-		timestamps: true,
-	},
-);
+const issueSchema = new mongoose.Schema({
+  title: { type: String },
+  state: { type: String }, // Example: open, closed
+  githubIssueId: { type: String, unique: true }, // GitHub Issue ID
+  date: { type: Date },
+  repository: { type: mongoose.Schema.Types.ObjectId, ref: 'Repository' }, // Link to repository
+  author: { type: mongoose.Schema.Types.ObjectId, ref: 'Member' }, // Link to the author (member)
+});
 
-const Issue = mongoose.model("Issue", issueSchema);
+const Issue = mongoose.model('Issue', issueSchema);
 
 module.exports = Issue;

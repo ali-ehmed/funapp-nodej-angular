@@ -6,7 +6,8 @@ const UserSchema = new mongoose.Schema({
 	name: { type: String, required: true },
 	profileUrl: { type: String, required: true },
 	avatarUrl: { type: String, required: true },
-	accessToken: { type: String, required: true },
+	accessToken: { type: String },
+	organizations: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Organization' }],
 	connectedAt: { type: Date, default: Date.now },
 });
 
