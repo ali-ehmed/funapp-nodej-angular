@@ -1,4 +1,3 @@
-const AuthService = require("../../services/authService");
 const User = require("../../models/userModel");
 
 exports.checkAuthStatus = async (req, res) => {
@@ -21,8 +20,6 @@ exports.checkAuthStatus = async (req, res) => {
 
 exports.logout = async (req, res) => {
 	try {
-		await AuthService.deleteUser(req.user.id); // Remove the user from the database
-
 		// Clear the JWT cookie
 		res.clearCookie("authToken", {
 			httpOnly: true,

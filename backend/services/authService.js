@@ -24,10 +24,6 @@ const findOrUpsertUser = async (profile, accessToken) => {
 	return user;
 };
 
-const deleteUser = async (userId) => {
-	await User.findByIdAndDelete(userId);
-};
-
 const generateJwt = (user) => {
 	return jwt.sign(
 		{ userId: user._id, username: user.username },
@@ -36,4 +32,4 @@ const generateJwt = (user) => {
 	);
 };
 
-module.exports = { findOrUpsertUser, generateJwt, deleteUser };
+module.exports = { findOrUpsertUser, generateJwt };

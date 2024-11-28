@@ -4,7 +4,7 @@ const User = require("../models/userModel");
 // Middleware to verify JWT token
 function authenticateUser(req, res, next) {
 	const token = req.cookies.authToken;
-	// const token = req.headers.authorization;
+
 	if (!token) {
 		return res.status(401).json({ message: "No token provided" }); // Unauthorized if no token
 	}
@@ -18,8 +18,9 @@ function authenticateUser(req, res, next) {
 		const foundUser = await User.findById(user.userId);
 
 		if (!foundUser) {
-			throw new Error("User not found");
+			return res.status(401).json({ message: "Unauthorized" });
 		}
+
 		req.user = foundUser; // Attach the user info to the request object
 		next(); // Proceed to the next middleware or route handler
 	});

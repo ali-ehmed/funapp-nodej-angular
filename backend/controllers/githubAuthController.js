@@ -13,10 +13,8 @@ exports.githubCallback = async (req, res) => {
 		const accessToken = await GithubService.exchangeCodeForToken(code);
 		// Step 2: Fetch GitHub user data
 		const profile = await GithubService.fetchGitHubUserData(accessToken);
-
 		// Step 3: Find or upsert user in the database
 		const user = await AuthService.findOrUpsertUser(profile, accessToken);
-
 		// Step 4: Generate JWT
 		const token = AuthService.generateJwt(user);
 		// Step 5: Set JWT as HTTP-only cookie
