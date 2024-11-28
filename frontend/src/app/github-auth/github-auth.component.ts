@@ -3,16 +3,14 @@ import { AuthService } from '../services/auth.service'; // Auth service for inte
 import { formatConnectionTime } from '../../helpers/githubAuthHelper'; // Helper function to format connection time
 @Component({
 	selector: 'app-github-auth',
-  	templateUrl: './github-auth.component.html',
-  	standalone: false,
+	templateUrl: './github-auth.component.html',
+	standalone: false,
 })
 
 export class GithubAuthComponent implements OnInit {
-	isAuthenticated = false; // Track authentication status
-	user: any = null; // Store user data
 	connectedAt: string = '';
 
-	constructor(private authService: AuthService) {}
+	constructor(public authService: AuthService) {}
 
 	ngOnInit(): void {
 		// Check for the Authorization token in response headers (if it exists in the URL or localStorage)
@@ -22,14 +20,12 @@ export class GithubAuthComponent implements OnInit {
 	checkAuthInfo(): void {
 		this.authService.checkAuthInfo().subscribe(
 			(response) => {
-				this.isAuthenticated = true;
-				this.user = response.user; // Assuming the backend returns the user data in the `user` property
-				this.connectedAt = formatConnectionTime(this.user.connectedAt);
+				this.authService.setAuthData(response.user);
+				this.connectedAt = formatConnectionTime(response.user.connectedAt);
 			},
 			(error) => {
 				if (error.status === 401 || error.status === 403) {
-					this.isAuthenticated = false;
-					this.user = null;
+					this.authService.clearAuthData();
 					this.connectedAt = '';
 				}
 			}
@@ -38,13 +34,12 @@ export class GithubAuthComponent implements OnInit {
 
 	// Redirect user to backend to authenticate with GitHub
 	connectToGithub(): void {
-		window.location.href = this.authService.redirectUrl;
+		this.authService.connectToGithub();
 	}
 
 	disconnectFromGithub(): void {
 		this.authService.disconnect().subscribe(() => {
-			this.isAuthenticated = false;
-			this.user = null;
+			this.authService.clearAuthData();
 			this.connectedAt = '';
 		});
 	}

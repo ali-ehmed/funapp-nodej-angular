@@ -5,7 +5,7 @@
   </header>
 
   <!-- Main Content -->
-  <main class="flex items-center align-middle justify-center w-full h-screen bg-gray-100">
+  <main [ngClass]="{ 'flex': !(authService.isAuthenticated$ | async), 'items-center': true, 'align-middle': true, 'justify-center': true, 'w-full': true, 'h-screen': true, 'bg-gray-100': true }">
     <div class="flex-grow">
       <router-outlet></router-outlet>
     </div>

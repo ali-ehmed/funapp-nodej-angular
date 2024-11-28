@@ -10,7 +10,6 @@ import { AuthService } from '../services/auth.service';
   imports: [
     CommonModule, // Import CommonModule for Angular directives (*ngIf, *ngFor)
   ],
-  providers: [AuthService],
   exports: [
     GithubAuthComponent, // Export the component to make it available outside this module
   ],
