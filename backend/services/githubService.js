@@ -92,7 +92,8 @@ const fetchRepoCollaborators = async (repoFullname, accessToken) => {
 // Fetch user info by account id
 const fetchUserInfo = async (accountId) => {
   try {
-    return await axios.get(`https://api.github.com/user/${accountId}`);
+    const response = await axios.get(`https://api.github.com/user/${accountId}`);
+    return response.data;
   } catch (error) {
     console.error('Failed to fetch user info:', error);
     throw new Error('Failed to fetch user info');
@@ -164,16 +165,17 @@ const fetchRepoCollaboratorPRs = async (repoFullName, accessToken, collaboratorL
 };
 
 // Fetch issues assigned to a specific collaborator in a repository
-const fetchRepoAssignedIssues = async (repoFullName, accessToken, collaborator) => {
+const fetchRepoAssignedIssues = async (repoFullName, accessToken, collaboratorLogin) => {
   try {
     const response = await axios.get(`https://api.github.com/repos/${repoFullName}/issues`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
       params: {
-        assignee: collaborator.login, // Filter by collaborator login
+        assignee: collaboratorLogin, // Filter by collaborator login
       }
     });
+
     return response.data; // Return the list of issues
   } catch (error) {
     console.error('Failed to fetch issues for collaborator:', error);

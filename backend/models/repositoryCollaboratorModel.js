@@ -5,8 +5,10 @@ const RepositoryCollaboratorSchema = new mongoose.Schema({
   commits: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Commit' }],
   githubCollaboratorId: { type: String, unique: true },
   issues: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Issue' }],
+  name: { type: String, required: true },
   organization: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' }, // Link to the organization
   pullRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'PullRequest' }],
+  repository: { type: mongoose.Schema.Types.ObjectId, ref: 'Repository' }, // Link to repository
   username: { type: String },
 });
 

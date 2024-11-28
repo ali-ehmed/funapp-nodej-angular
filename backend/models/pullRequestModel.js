@@ -30,6 +30,6 @@ PullRequestSchema.statics.createOrUpdatePullRequest = async function (prData, re
   return pullRequest;
 };
 
-const PullRequest = mongoose.model('PullRequest', pullRequestSchema);
+const PullRequest = mongoose.model('PullRequest', PullRequestSchema);
 
 module.exports = PullRequest;

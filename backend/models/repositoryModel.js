@@ -37,6 +37,23 @@ RepositorySchema.statics.createOrUpdateRepository = async function (repoData, or
   return repository; // Return the created or updated repository
 };
 
+// Toggle the includeFetch field for a repository
+RepositorySchema.statics.toggleIncludeFetch = async function (repoIds) {
+  // First, set includeFetch to false for all repositories except the ones with passed ids
+  await this.updateMany(
+    { _id: { $nin: repoIds } }, // Exclude repositories with the passed IDs
+    { $set: { includeFetch: false } } // Set includeFetch to false
+  );
+
+  // Then, set includeFetch to true for the repositories with the passed IDs
+  const updatedRepositories = await this.updateMany(
+    { _id: { $in: repoIds } },
+    { $set: { includeFetch: true } },
+    { new: true }
+  );
+
+  return updatedRepositories;
+};
 
 const Repository = mongoose.model('Repository', RepositorySchema);
 
