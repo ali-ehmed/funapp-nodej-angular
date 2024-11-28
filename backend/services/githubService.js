@@ -47,45 +47,37 @@ const fetchGitHubUserData = async (accessToken) => {
 
 // Fetch organizations for the authenticated user
 const fetchOrganizationsData = async (accessToken) => {
+  const url = 'https://api.github.com/user/orgs';
+
   try {
-    const response = await axios.get('https://api.github.com/user/orgs', {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-    return response.data; // Return the list of organizations
+    return await fetchPaginatedData(url, accessToken);
   } catch (error) {
+    console.error('Failed to fetch organizations from GitHub', error);
     throw new Error('Failed to fetch organizations from GitHub');
   }
 };
 
-// Fetch repositories for a given organization
+// Fetch repositories data for a given organization (with pagination)
 const fetchRepositoriesData = async (orgLogin, accessToken) => {
+  const url = `https://api.github.com/orgs/${orgLogin}/repos`;
+
   try {
-    const response = await axios.get(`https://api.github.com/orgs/${orgLogin}/repos`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-    return response.data; // Return the list of repositories
+    return await fetchPaginatedData(url, accessToken);
   } catch (error) {
-    throw new Error('Failed to fetch repositories from GitHub');
+    console.error(`Failed to fetch repositories from GitHub for organization: ${orgLogin}`, error);
+    throw new Error(`Failed to fetch repositories from GitHub for organization: ${orgLogin}`);
   }
 };
 
-// Fetch collaborators for a repository
-const fetchRepoCollaborators = async (repoFullname, accessToken) => {
-  try {
-    const response = await axios.get(`https://api.github.com/repos/${repoFullname}/collaborators`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+// Fetch collaborators for a repository (with pagination)
+const fetchRepoCollaborators = async (repoFullName, accessToken) => {
+  const url = `https://api.github.com/repos/${repoFullName}/collaborators`;
 
-    return response.data; // This will give you the list of collaborators with access to the repo
+  try {
+    return await fetchPaginatedData(url, accessToken);
   } catch (error) {
-    console.error('Failed to fetch repository collaborators:', error);
-    throw new Error('Failed to fetch repository collaborators');
+    console.error(`Failed to fetch repository collaborators for repository: ${repoFullName}`, error);
+    throw new Error(`Failed to fetch repository collaborators for repository: ${repoFullName}`);
   }
 };
 
@@ -95,91 +87,121 @@ const fetchUserInfo = async (accountId) => {
     const response = await axios.get(`https://api.github.com/user/${accountId}`);
     return response.data;
   } catch (error) {
-    console.error('Failed to fetch user info:', error);
-    throw new Error('Failed to fetch user info');
+    console.error(`Failed to fetch user info for accountId: ${accountId}`, error);
+    throw new Error(`Failed to fetch user info for accountId: ${accountId}`);
   }
 };
 
-// Fetch all branches in a repository
+// Fetch all branches in a repository (with pagination)
 const fetchRepositoryBranches = async (repoFullName, accessToken) => {
-  try {
-    const response = await axios.get(`https://api.github.com/repos/${repoFullName}/branches`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+  const url = `https://api.github.com/repos/${repoFullName}/branches`;
 
-    return response.data; // List of branches
+  try {
+    return await fetchPaginatedData(url, accessToken);
   } catch (error) {
-    console.error('Failed to fetch branches:', error);
-    throw new Error('Failed to fetch branches');
+    console.error(`Failed to fetch branches for repository: ${repoFullName}`, error);
+    throw new Error(`Failed to fetch branches for repository: ${repoFullName}`);
   }
 };
 
-// Fetch commits for a specific collaborator across all branches
+// Fetch commits for a specific collaborator across all branches (with pagination)
 const fetchRepoCollaboratorCommits = async (repoFullName, accessToken, collaboratorLogin) => {
   try {
-    // Step 1: Get the list of branches in the repository
+    // Get the list of branches in the repository
     const branches = await fetchRepositoryBranches(repoFullName, accessToken);
 
-    // Step 2: Fetch commits for each branch for the given collaborator
+    // Fetch commits for each branch for the given collaborator
     let allCommits = [];
 
     for (let branch of branches) {
-      const response = await axios.get(`https://api.github.com/repos/${repoFullName}/commits`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-        params: {
+      const url = `https://api.github.com/repos/${repoFullName}/commits`;
+      const commitsData =  await fetchPaginatedData(
+        url,
+        accessToken,
+        {
           author: collaboratorLogin, // Filter by collaborator login
           sha: branch.name, // Fetch commits for this specific branch
-        },
-      });
+        }
+      );
 
-      allCommits = allCommits.concat(response.data); // Combine commits from each branch
+      allCommits = allCommits.concat(commitsData); // Combine commits from each branch
     }
 
-    return allCommits; // Return the combined commits from all branches
+    return allCommits;
   } catch (error) {
-    console.error('Failed to fetch commits for collaborator:', error);
-    throw new Error('Failed to fetch commits');
+    console.error(`Failed to fetch commits for collaborator: ${collaboratorLogin} for repository: ${repoFullName}`, error);
+    throw new Error(`Failed to fetch commits for collaborator: ${collaboratorLogin} for repository: ${repoFullName}`);
   }
 };
 
 // Fetch pull requests created by a specific collaborator in a repository
 const fetchRepoCollaboratorPRs = async (repoFullName, accessToken, collaboratorLogin) => {
   try {
-    const response = await axios.get(`https://api.github.com/repos/${repoFullName}/pulls`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const url = `https://api.github.com/repos/${repoFullName}/pulls`;
+    const pullRequestsData = await fetchPaginatedData(url, accessToken);
 
     // Filter pull requests by collaborator (author)
-    const pullRequestsByAuthor = response.data.filter(pr => pr.user.login === collaboratorLogin);
+    const pullRequestsByAuthor = pullRequestsData.filter(pr => pr.user.login === collaboratorLogin);
 
     return pullRequestsByAuthor; // Return the filtered pull requests
   } catch (error) {
-    throw new Error('Failed to fetch pull requests');
+    console.error(`Failed to fetch pull request for repository: ${repoFullName} and assigned to ${collaboratorLogin}`, error);
+    throw new Error(`Failed to fetch pull request for repository: ${repoFullName} and assigned to ${collaboratorLogin}`);
   }
 };
 
 // Fetch issues assigned to a specific collaborator in a repository
 const fetchRepoAssignedIssues = async (repoFullName, accessToken, collaboratorLogin) => {
   try {
-    const response = await axios.get(`https://api.github.com/repos/${repoFullName}/issues`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      params: {
+    const url = `https://api.github.com/repos/${repoFullName}/issues`;
+    return await fetchPaginatedData(
+      url,
+      accessToken,
+      {
         assignee: collaboratorLogin, // Filter by collaborator login
       }
-    });
-
-    return response.data; // Return the list of issues
+    );
   } catch (error) {
-    console.error('Failed to fetch issues for collaborator:', error);
-    throw new Error('Failed to fetch issues');
+    console.error(`Failed to fetch issues for repository: ${repoFullName} asssigned to collaborator: ${collaboratorLogin}`, error);
+    throw new Error(`Failed to fetch issues for repository: ${repoFullName} asssigned to collaborator: ${collaboratorLogin}` );
+  }
+};
+
+// Fetch data through pagination
+const fetchPaginatedData = async (url, accessToken, params = {}) => {
+  const allData = []; // To store all the results
+  let page = 1;
+  const perPage = 100; // Number of results per page (can be adjusted if needed)
+
+  try {
+    while (true) {
+      // Fetch data for the current page
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        params: {
+          ...params,   // Add any additional params (e.g., filters)
+          page: page,  // The current page
+          per_page: perPage,  // Number of results per page
+        },
+      });
+
+      // If no data is returned, stop the loop
+      if (response.data.length === 0) {
+        break;
+      }
+
+      // Add the current page's data to the result array
+      allData.push(...response.data);
+
+      // Move to the next page
+      page++;
+    }
+
+    return allData; // Return all the fetched data
+  } catch (error) {
+    throw new Error(`Failed to fetch data from ${url}: ${error.message}`);
   }
 };
 
