@@ -7,7 +7,7 @@
   <!-- Main Content -->
   <main [ngClass]="{ 'flex': !(authService.isAuthenticated$ | async), 'items-center': true, 'align-middle': true, 'justify-center': true, 'w-full': true, 'h-screen': true, 'bg-gray-100': true }">
     <div class="flex-grow">
-      <router-outlet></router-outlet>
+      <app-github-auth></app-github-auth>
     </div>
   </main>
 

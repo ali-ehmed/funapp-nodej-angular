@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../services/auth.service';
-import { OrgService } from '../services/org.service';
+
 @Component({
 	selector: 'app-github-auth',
 	templateUrl: './github-auth.component.html',
@@ -10,7 +10,7 @@ import { OrgService } from '../services/org.service';
 export class GithubAuthComponent implements OnInit {
 	organizationsData: any[] = [];
 
-	constructor(public authService: AuthService, private orgService: OrgService) {}
+	constructor(public authService: AuthService) {}
 
 	ngOnInit(): void {
 		// Check for the Authorization token in response headers (if it exists in the URL or localStorage)
@@ -21,7 +21,6 @@ export class GithubAuthComponent implements OnInit {
 		this.authService.checkAuthInfo().subscribe(
 			(response) => {
 				this.authService.setAuthData(response.user);
-				this.loadOrgs();
 			},
 			(error) => {
 				if (error.status === 401 || error.status === 403) {
@@ -30,17 +29,6 @@ export class GithubAuthComponent implements OnInit {
 			}
 		);
 	}
-
-	loadOrgs(): void {
-    this.orgService.getOrgs().subscribe(
-      (data) => {
-        this.organizationsData = data.data;  // Store the data in the orgs array
-      },
-      (error) => {
-        console.error('Error loading orgs:', error);
-      }
-    );
-  }
 
 	// Redirect user to backend to authenticate with GitHub
 	connectToGithub(): void {
