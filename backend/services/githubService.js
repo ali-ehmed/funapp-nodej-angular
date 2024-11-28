@@ -1,4 +1,5 @@
 const axios = require('axios');
+const GithubService = require('../lib/githubServiceError');
 
 const redirectUri = 'http://localhost:3000/auth/github/callback';
 const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${process.env.GITHUB_CLIENT_ID}&redirect_uri=${redirectUri}&scope=read:org,repo&login&prompt=consent`;
@@ -19,7 +20,7 @@ const exchangeCodeForToken = async (code) => {
 
     return data.access_token;
   } catch (error) {
-    throw new Error('Failed to exchange code for token');
+    throw new GithubService('Failed to exchange code for token', error.status);
   }
 };
 
@@ -41,7 +42,7 @@ const fetchGitHubUserData = async (accessToken) => {
       profileUrl: html_url,
     };
   } catch (error) {
-    throw new Error('Failed to fetch user data from GitHub');
+    throw new GithubService('Failed to fetch user data from GitHub', error.status);
   }
 };
 
@@ -53,7 +54,7 @@ const fetchOrganizationsData = async (accessToken) => {
     return await fetchPaginatedData(url, accessToken);
   } catch (error) {
     console.error('Failed to fetch organizations from GitHub', error);
-    throw new Error('Failed to fetch organizations from GitHub');
+    throw new GithubService('Failed to fetch organizations from GitHub', error.status);
   }
 };
 
@@ -65,7 +66,7 @@ const fetchRepositoriesData = async (orgLogin, accessToken) => {
     return await fetchPaginatedData(url, accessToken);
   } catch (error) {
     console.error(`Failed to fetch repositories from GitHub for organization: ${orgLogin}`, error);
-    throw new Error(`Failed to fetch repositories from GitHub for organization: ${orgLogin}`);
+    throw new GithubService(`Failed to fetch repositories from GitHub for organization: ${orgLogin}`. error.status);
   }
 };
 
@@ -77,7 +78,7 @@ const fetchRepoCollaborators = async (repoFullName, accessToken) => {
     return await fetchPaginatedData(url, accessToken);
   } catch (error) {
     console.error(`Failed to fetch repository collaborators for repository: ${repoFullName}`, error);
-    throw new Error(`Failed to fetch repository collaborators for repository: ${repoFullName}`);
+    throw new GithubService(`Failed to fetch repository collaborators for repository: ${repoFullName}`, error.status);
   }
 };
 
@@ -88,7 +89,7 @@ const fetchUserInfo = async (accountId) => {
     return response.data;
   } catch (error) {
     console.error(`Failed to fetch user info for accountId: ${accountId}`, error);
-    throw new Error(`Failed to fetch user info for accountId: ${accountId}`);
+    throw new GithubService(`Failed to fetch user info for accountId: ${accountId}`, error.status);
   }
 };
 
@@ -100,7 +101,7 @@ const fetchRepositoryBranches = async (repoFullName, accessToken) => {
     return await fetchPaginatedData(url, accessToken);
   } catch (error) {
     console.error(`Failed to fetch branches for repository: ${repoFullName}`, error);
-    throw new Error(`Failed to fetch branches for repository: ${repoFullName}`);
+    throw new GithubService(`Failed to fetch branches for repository: ${repoFullName}`, error.status);
   }
 };
 
@@ -130,7 +131,7 @@ const fetchRepoCollaboratorCommits = async (repoFullName, accessToken, collabora
     return allCommits;
   } catch (error) {
     console.error(`Failed to fetch commits for collaborator: ${collaboratorLogin} for repository: ${repoFullName}`, error);
-    throw new Error(`Failed to fetch commits for collaborator: ${collaboratorLogin} for repository: ${repoFullName}`);
+    throw new GithubService(`Failed to fetch commits for collaborator: ${collaboratorLogin} for repository: ${repoFullName}`, error.status);
   }
 };
 
@@ -146,7 +147,7 @@ const fetchRepoCollaboratorPRs = async (repoFullName, accessToken, collaboratorL
     return pullRequestsByAuthor; // Return the filtered pull requests
   } catch (error) {
     console.error(`Failed to fetch pull request for repository: ${repoFullName} and assigned to ${collaboratorLogin}`, error);
-    throw new Error(`Failed to fetch pull request for repository: ${repoFullName} and assigned to ${collaboratorLogin}`);
+    throw new GithubService(`Failed to fetch pull request for repository: ${repoFullName} and assigned to ${collaboratorLogin}`, error.status);
   }
 };
 
@@ -163,7 +164,7 @@ const fetchRepoAssignedIssues = async (repoFullName, accessToken, collaboratorLo
     );
   } catch (error) {
     console.error(`Failed to fetch issues for repository: ${repoFullName} asssigned to collaborator: ${collaboratorLogin}`, error);
-    throw new Error(`Failed to fetch issues for repository: ${repoFullName} asssigned to collaborator: ${collaboratorLogin}` );
+    throw new GithubService(`Failed to fetch issues for repository: ${repoFullName} asssigned to collaborator: ${collaboratorLogin}`, error.status);
   }
 };
 
@@ -201,7 +202,7 @@ const fetchPaginatedData = async (url, accessToken, params = {}) => {
 
     return allData; // Return all the fetched data
   } catch (error) {
-    throw new Error(`Failed to fetch data from ${url}: ${error.message}`);
+    throw new GithubService(`Failed to fetch data from ${url}: ${error.message}`, error.status);
   }
 };
 

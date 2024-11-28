@@ -62,7 +62,7 @@ RepositorySchema.statics.toggleIncludeFetch = async function (repoIds) {
 RepositorySchema.methods.updateLastSyncRun = async function() {
   this.last_github_sync_run = new Date();
   await this.save();
-  console.log('Updated last_github_sync_run:', this.last_github_sync_run);
+  console.log('Updated repository last_github_sync_run:', this.last_github_sync_run);
 };
 
 const Repository = mongoose.model('Repository', RepositorySchema);

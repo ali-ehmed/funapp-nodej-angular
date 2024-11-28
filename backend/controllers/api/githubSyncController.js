@@ -1,3 +1,4 @@
+const GithubServiceError = require("../../lib/githubServiceError");
 const GithubService = require("../../services/githubService");
 
 const Organization = require("../../models/organizationModel");
@@ -7,6 +8,7 @@ const Commit = require("../../models/commitModel");
 const PullRequest = require("../../models/pullRequestModel");
 const Issue = require("../../models/issueModel");
 
+// GET /api/orgs/sync-repositories-data
 exports.syncOrganizationsData = async (req, res) => {
 	const user = req.user;
 
@@ -37,7 +39,9 @@ exports.syncOrganizationsData = async (req, res) => {
 	}
 };
 
+// GET /api/orgs/:org_id:/sync-repositories-data
 exports.syncRepositoriesData = async (req, res) => {
+  const { org_id } = req.params;
   const { repository_ids } = req.body;
   const { accessToken: githubAccessToken } = req.user;
 
@@ -51,35 +55,43 @@ exports.syncRepositoriesData = async (req, res) => {
     // Update `includeFetch` for all repositories
     await Repository.toggleIncludeFetch(repoIds, true);
 
-    // Fetch all repositories with the specified IDs in one query
-    const repositories = await Repository.find({ _id: { $in: repoIds } });
+    // Fetch all repositories with the specified IDs and current organization in one query
+    const repositories = await Repository.find({ _id: { $in: repoIds }, organization: org_id });
 
     for (let repository of repositories) {
-      console.log("--- Syncing repository data for:", repository.fullName);
+      console.log(`--- Syncing repository data for: ${repository.fullName} ---`);
 
-      // Fetch repository collaborators
-      const collaborators = await GithubService.fetchRepoCollaborators(repository.fullName, githubAccessToken);
+      try {
+        // Fetch repository collaborators
+        const collaborators = await GithubService.fetchRepoCollaborators(repository.fullName, githubAccessToken);
 
-      for (let collaborator of collaborators) {
-        const collaboratorUserInfoData = await GithubService.fetchUserInfo(collaborator.id);
-        const repoCollaborator = await RepositoryCollaborator.createOrUpdateCollaborator(collaboratorUserInfoData, collaborator, repository._id, repository.organization._id);
+        for (let collaborator of collaborators) {
+          const collaboratorUserInfoData = await GithubService.fetchUserInfo(collaborator.id);
+          const repoCollaborator = await RepositoryCollaborator.createOrUpdateCollaborator(collaboratorUserInfoData, collaborator, repository._id, repository.organization._id);
 
-        // Fetch and store commits made by the collaborator
-        const commits = await GithubService.fetchRepoCollaboratorCommits(repository.fullName, githubAccessToken, repoCollaborator.username);
-        for (let commitData of commits) {
-          await Commit.createOrUpdateCommit(commitData, repoCollaborator._id, repository._id);
+          // Fetch and store commits made by the collaborator
+          const commits = await GithubService.fetchRepoCollaboratorCommits(repository.fullName, githubAccessToken, repoCollaborator.username);
+          for (let commitData of commits) {
+            await Commit.createOrUpdateCommit(commitData, repoCollaborator._id, repository._id, repository.organization._id);
+          }
+
+          // Fetch and store pull requests created by the collaborator
+          const pullRequests = await GithubService.fetchRepoCollaboratorPRs(repository.fullName, githubAccessToken, repoCollaborator.username);
+          for (let prData of pullRequests) {
+            await PullRequest.createOrUpdatePullRequest(prData, repoCollaborator._id, repository._id, repository.organization._id);
+          }
+
+          // Fetch and store issues assigned to the collaborator
+          const issues = await GithubService.fetchRepoAssignedIssues(repository.fullName, githubAccessToken, repoCollaborator.username);
+          for (let issueData of issues) {
+            await Issue.createOrUpdateIssue(issueData, repoCollaborator._id, repository._id, repository.organization._id);
+          }
         }
-
-        // Fetch and store pull requests created by the collaborator
-        const pullRequests = await GithubService.fetchRepoCollaboratorPRs(repository.fullName, githubAccessToken, repoCollaborator.username);
-        for (let prData of pullRequests) {
-          await PullRequest.createOrUpdatePullRequest(prData, repoCollaborator._id, repository._id);
-        }
-
-        // Fetch and store issues assigned to the collaborator
-        const issues = await GithubService.fetchRepoAssignedIssues(repository.fullName, githubAccessToken, repoCollaborator.username);
-        for (let issueData of issues) {
-          await Issue.createOrUpdateIssue(issueData, repoCollaborator._id, repository._id);
+      } catch (error) {
+        if (error instanceof GithubServiceError && error.status === 403) {
+          continue;
+        } else {
+          throw new Error(error.message)
         }
       }
 
