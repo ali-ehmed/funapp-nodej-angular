@@ -8,6 +8,7 @@ const RepositorySchema = new mongoose.Schema(
     fullName: { type: String, required: true },
     githubRepoId: { type: Number, required: true },
     includeFetch: { type: Boolean, default: false },
+    last_github_sync_run: { type: Date, default: null },
     name: { type: String, required: true },
     organization: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' }, // Link to the organization
     private: { type: Boolean },
@@ -15,6 +16,8 @@ const RepositorySchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+RepositorySchema.index({ githubRepoId: 1, organization: 1 }, { unique: true });
 
 RepositorySchema.statics.createOrUpdateRepository = async function (repoData, organizationId) {
   // Find the repository by both githubRepoId and organizationId
@@ -53,6 +56,13 @@ RepositorySchema.statics.toggleIncludeFetch = async function (repoIds) {
   );
 
   return updatedRepositories;
+};
+
+// Update last_github_sync_run
+RepositorySchema.methods.updateLastSyncRun = async function() {
+  this.last_github_sync_run = new Date();
+  await this.save();
+  console.log('Updated last_github_sync_run:', this.last_github_sync_run);
 };
 
 const Repository = mongoose.model('Repository', RepositorySchema);

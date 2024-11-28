@@ -8,9 +8,10 @@ const PullRequest = require("../../models/pullRequestModel");
 const Issue = require("../../models/issueModel");
 
 exports.syncOrganizationsData = async (req, res) => {
-	const { accessToken: githubAccessToken, _id: userId } = req.user;
+	const user = req.user;
 
 	try {
+    const { accessToken: githubAccessToken, _id: userId } = user;
 		// Fetch the organizations for the user
     const organizations = await GithubService.fetchOrganizationsData(githubAccessToken);
 
@@ -26,6 +27,8 @@ exports.syncOrganizationsData = async (req, res) => {
         await Repository.createOrUpdateRepository(repoData, organization._id);
       }
     }
+
+    await user.updateLastSyncRun();
 
 		return res.status(200).json({ message: 'Organizations and repositories synced successfully.' });
 	} catch (error) {
@@ -79,6 +82,8 @@ exports.syncRepositoriesData = async (req, res) => {
           await Issue.createOrUpdateIssue(issueData, repoCollaborator._id, repository._id);
         }
       }
+
+      await repository.updateLastSyncRun();
     }
 
     return res.status(200).json({ message: 'Repositories data synced successfully.' });

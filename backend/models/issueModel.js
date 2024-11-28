@@ -2,19 +2,22 @@ const mongoose = require('mongoose');
 
 const IssueSchema = new mongoose.Schema(
   {
-    githubIssueId: { type: String, unique: true }, // GitHub Issue ID
+    githubIssueId: { type: String }, // GitHub Issue ID
     title: { type: String },
     state: { type: String }, // Example: open, closed
     date: { type: Date },
+    organization: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' }, // Link to the organization
     repository: { type: mongoose.Schema.Types.ObjectId, ref: 'Repository' }, // Link to repository
     assignee: { type: mongoose.Schema.Types.ObjectId, ref: 'RepositoryCollaborator' }, // Link to the author (RepositoryCollaborator)
   },
   { timestamps: true }
 );
 
-IssueSchema.statics.createOrUpdateIssue = async function (issueData, repositoryCollaboratorId, repositoryId) {
+IssueSchema.index({ githubIssueId: 1, repository: 1, organization: 1 }, { unique: true });
+
+IssueSchema.statics.createOrUpdateIssue = async function (issueData, repositoryCollaboratorId, repositoryId, organizationId) {
   const issue = await this.findOneAndUpdate(
-    { githubIssueId: issueData.id, repository: repositoryId }, // Match by issueId and repository
+    { githubIssueId: issueData.id, repository: repositoryId, organization: organizationId }, // Match by issueId and repository
     {
       $set: {
         githubIssueId: issueData.id,

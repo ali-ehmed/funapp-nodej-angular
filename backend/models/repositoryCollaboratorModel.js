@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const RepositoryCollaboratorSchema = new mongoose.Schema({
   avatarUrl: { type: String },
   commits: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Commit' }],
-  githubCollaboratorId: { type: String, unique: true },
+  githubCollaboratorId: { type: String },
   issues: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Issue' }],
   name: { type: String, required: true },
   organization: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' }, // Link to the organization
@@ -12,10 +12,12 @@ const RepositoryCollaboratorSchema = new mongoose.Schema({
   username: { type: String },
 });
 
+RepositoryCollaboratorSchema.index({ githubCollaboratorId: 1, repository: 1, organization: 1 }, { unique: true });
+
 RepositoryCollaboratorSchema.statics.createOrUpdateCollaborator = async function (userInfoData, collaboratorData, repositoryId, organizationId) {
   // Use findOneAndUpdate to either update or create the collaborator
   const collaborator = await this.findOneAndUpdate(
-    { githubCollaboratorId: collaboratorData.id, repository: repositoryId }, // Match on githubUserId and repository
+    { githubCollaboratorId: collaboratorData.id, repository: repositoryId, organization: organizationId }, // Match on githubUserId and repository
     {
       $set: {
         avatarUrl: userInfoData.avatar_url,

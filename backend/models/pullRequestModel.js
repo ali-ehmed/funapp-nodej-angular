@@ -5,6 +5,7 @@ const PullRequestSchema = new mongoose.Schema(
     creator: { type: mongoose.Schema.Types.ObjectId, ref: 'RepositoryCollaborator' }, // Link to the author (RepositoryCollaborator)
     date: { type: Date },
     githubPrId: { type: String, unique: true }, // GitHub PR ID
+    organization: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' }, // Link to the organization
     repository: { type: mongoose.Schema.Types.ObjectId, ref: 'Repository' }, // Link to repository
     state: { type: String }, // Example: open, closed, merged
     title: { type: String },
@@ -12,9 +13,11 @@ const PullRequestSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-PullRequestSchema.statics.createOrUpdatePullRequest = async function (prData, repositoryCollaboratorId, repositoryId) {
+PullRequestSchema.index({ githubPrId: 1, repository: 1, organization: 1 }, { unique: true });
+
+PullRequestSchema.statics.createOrUpdatePullRequest = async function (prData, repositoryCollaboratorId, repositoryId, organizationId) {
   const pullRequest = await this.findOneAndUpdate(
-    { githubPrId: prData.id, repository: repositoryId }, // Match by prId and repository
+    { githubPrId: prData.id, repository: repositoryId, organization: organizationId }, // Match by prId and repository
     {
       $set: {
         creator: repositoryCollaboratorId,
