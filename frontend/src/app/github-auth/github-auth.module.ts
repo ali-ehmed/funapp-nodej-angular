@@ -8,6 +8,7 @@ import { SyncService } from '../services/sync.service';
 import { RepoService } from '../services/repo.service';
 import { OrganizationsComponent } from '../organizations/organizations.component';
 import { OrgService } from '../services/org.service';
+import { AgGridModule } from 'ag-grid-angular';
 
 @NgModule({
   declarations: [
@@ -19,6 +20,7 @@ import { OrgService } from '../services/org.service';
     GithubAuthRoutingModule,
     ConnectedCardComponent,
     CommonModule, // Import CommonModule for Angular directives (*ngIf, *ngFor)
+    AgGridModule,
   ],
   providers: [SyncService, OrgService, RepoService],
   exports: [
