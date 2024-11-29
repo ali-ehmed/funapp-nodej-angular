@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { RepoService } from '../../services/repo.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ColDef } from 'ag-grid-community';
+import { CellClickedEvent, ColDef } from 'ag-grid-community';
 
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
@@ -22,23 +22,22 @@ interface IRow {
 })
 export class RepositoriesComponent implements OnInit {
   orgId: string = '';
-  repositoriesData: any[] = [];
-
   synchronizingRepos = false;
   includedRepos: string[] = [];
 
-  themeClass = "ag-theme-quartz";
-
   rowData: any[] = [];
-
-  // Column Definitions: Defines & controls grid columns.
   colDefs: ColDef<IRow>[] = [
-    { headerName: "ID", field: 'id' },
+    {
+      headerName: "ID",
+      field: 'id',
+      cellRenderer: this.idColRenderer,
+      onCellClicked: (event: CellClickedEvent) => this.redirectToDetails(event.data.id),
+    },
     { field: 'name' },
     {
       headerName: "Link",
       field: 'repoUrl',
-      cellRenderer: this.linkRenderer
+      cellRenderer: this.linkColRenderer
     },
     { headerName: "Slug", field: 'fullName' },
     {
@@ -48,9 +47,7 @@ export class RepositoriesComponent implements OnInit {
     }
   ];
 
-  defaultColDef: ColDef = {
-      flex: 1,
-  };
+  defaultColDef: ColDef = { flex: 1 };
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -69,25 +66,25 @@ export class RepositoriesComponent implements OnInit {
     this.activatedRoute.paramMap.subscribe(params => {
       this.orgId = params.get('org_id') || '';
       if (this.orgId) {
-        this.loadOrgRepos(this.orgId);
+        this.loadOrgRepos();
       } else {
         this.router.navigate(['/']);
       }
     });
   }
 
-  loadOrgRepos(orgId: string): void {
+  loadOrgRepos(): void {
     // Fetch the initial organizations data
-    this.repoService.fetchOrgRepositories(orgId);
+    this.repoService.fetchOrgRepositories(this.orgId);
 
     // Subscribe to the organizations data
     this.repoService.getOrgRepos().subscribe(data => {
-      console.log(data)
       this.rowData = data.data ?? [];
     });
   }
 
   onCellValueChanged(event: any): void {
+    console.log('Cell value changed', event);
     const { data, colDef, newValue } = event;
 
     if (colDef.field === 'includeFetch') {
@@ -103,13 +100,21 @@ export class RepositoriesComponent implements OnInit {
     }
   }
 
-  linkRenderer(params: any): string {
+  idColRenderer(params: any) {
+    return `<a class="text-blue-400 cursor-pointer">${params.value}</a>`;
+  }
+
+  linkColRenderer(params: any): string {
     return `<a href="${params.value}" target="_blank" rel="noopener noreferrer" class="text-blue-400">${params.value}</a>`;
+  }
+
+  redirectToDetails(repoId: string): void {
+    this.router.navigate(['/orgs', this.orgId, 'repos', repoId, 'details'])
   }
 
   onSyncRepositories(): void {
     this.synchronizingRepos = true;
-		this.syncService.syncOrgs().subscribe({
+		this.syncService.syncOrgRepos(this.orgId, this.includedRepos).subscribe({
       error: (error) => {
         // Handle the error logic here
 				this.synchronizingRepos = false;

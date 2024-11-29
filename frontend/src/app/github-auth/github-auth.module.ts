@@ -9,12 +9,14 @@ import { RepoService } from '../services/repo.service';
 import { OrganizationsComponent } from '../organizations/organizations.component';
 import { OrgService } from '../services/org.service';
 import { AgGridModule } from 'ag-grid-angular';
+import { RepoDetailsComponent } from '../organizations/repositories/repo-details/repo-details.component';
 
 @NgModule({
   declarations: [
     GithubAuthComponent,
-    RepositoriesComponent,
     OrganizationsComponent,
+    RepositoriesComponent,
+    RepoDetailsComponent,
   ],
   imports: [
     GithubAuthRoutingModule,

@@ -22,8 +22,13 @@ export class RepoService {
       });
   }
 
-  // Optional: You can call this to get the latest organizations without needing to reload
   getOrgRepos(): Observable<any> {
     return this.repositories$;
+  }
+
+  getRepoDetails(orgId: string, repoId: string): Observable<any> {
+    return this.http.get<any>(`${this.apiBaseUrl}/api/orgs/${orgId}/repos/${repoId}/details`, {
+      withCredentials: true,
+    });
   }
 }

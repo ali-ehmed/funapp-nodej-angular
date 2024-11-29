@@ -15,9 +15,10 @@ export class SyncService {
     });
   }
 
-  syncOrgRepos(orgId: string): Observable<any> {
-    return this.http.post<any>(`${this.apiBaseUrl}/api/orgs/${orgId}/sync-repositories-data`, {}, {
-      withCredentials: true, // Send HTTP-only cookies automatically
-    });
+  syncOrgRepos(orgId: string, repoIds: string[]): Observable<any> {
+    return this.http.post<any>(`${this.apiBaseUrl}/api/orgs/${orgId}/sync-repositories-data`,
+      { repository_ids: repoIds },
+      { withCredentials: true }
+    );
   }
 }

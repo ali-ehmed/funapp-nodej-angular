@@ -9,21 +9,25 @@
         [disabled]="disabledSyncButton"
         (click)="onSyncRepositories()"
         [ngClass]="{
-            'cursor-not-allowed opacity-50': disabledSyncButton,
+            'cursor-not-allowed opacity-50 outline': disabledSyncButton,
             'text-white bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-300': !disabledSyncButton
         }"
         class="text-sm py-1 px-3 h-8 rounded-md focus:outline-none"
     >
-    Sync Repositories Data
+        {{ synchronizingRepos ? 'Sync in progress...' : 'Sync Repositories Data' }}
     </button>
 </div>
+
+<a [routerLink]="['/orgs', orgId, 'repos', '6748cb2ce88a7c4867599d5b', 'details']" class="text-sm font-semibold text-blue-500 hover:underline">
+    Repo Details
+</a>
 
 <div class="content" style="width: 100%; height: 100%;">
     <ag-grid-angular
         [pagination]="false"
         [domLayout]="'autoHeight'"
         style="width: 100%; height: 100%;"
-        [class]="themeClass"
+        class="ag-theme-quartz"
         [rowData]="rowData"
         [columnDefs]="colDefs"
         [defaultColDef]="defaultColDef"

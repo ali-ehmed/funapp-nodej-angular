@@ -37,12 +37,12 @@
                 [disabled]="synchronizingOrgs"
                 (click)="onSyncOrganizations()"
                 [ngClass]="{
-                    'cursor-not-allowed opacity-50': synchronizingOrgs,
+                    'cursor-not-allowed opacity-50 outline': synchronizingOrgs,
                     'text-white bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-300': !synchronizingOrgs
                 }"
                 class="mt-4 text-sm py-1 px-3 h-8 rounded-md focus:outline-none"
             >
-                Sync Organizations
+                {{ synchronizingOrgs ? 'Sync in progress...' : 'Sync Organizations' }}
             </button>
             <!-- Disconnect button -->
             <button 
