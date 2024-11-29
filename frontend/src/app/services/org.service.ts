@@ -16,13 +16,12 @@ export class OrgService {
   fetchOrganizations(): void {
     this.http.get<any>(`${this.apiBaseUrl}/api/orgs`, {
       withCredentials: true, // Send HTTP-only cookies automatically
-    })  // replace with your API endpoint
+    })
       .subscribe((data) => {
-        this.organizationsSubject.next(data);  // update the organizations data
+        this.organizationsSubject.next(data);
       });
   }
 
-  // Optional: You can call this to get the latest organizations without needing to reload
   getOrganizations(): Observable<any> {
     return this.organizations$;
   }

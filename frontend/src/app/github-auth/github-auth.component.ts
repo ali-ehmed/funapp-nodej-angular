@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../services/auth.service';
 import { SyncService } from '../services/sync.service';
 import { OrgService } from '../services/org.service';
+import { formatConnectionTime } from '../../helpers/githubAuthHelper';
 
 @Component({
 	selector: 'app-github-auth',
@@ -11,6 +12,7 @@ import { OrgService } from '../services/org.service';
 
 export class GithubAuthComponent implements OnInit {
 	synchronizingOrgs: boolean = false;
+	lastOrgSyncAt: string = '';
 
 	constructor(
 		public authService: AuthService,
@@ -19,13 +21,14 @@ export class GithubAuthComponent implements OnInit {
 	) {}
 
 	ngOnInit(): void {
-		this.checkAuthInfo();	
+		this.checkAuthInfo();
 	}
 
 	checkAuthInfo(): void {
 		this.authService.checkAuthInfo().subscribe(
 			(response) => {
 				this.authService.setAuthData(response.user);
+				this.setLastOrgSyncAt(response.user.last_github_sync_run);
 			},
 			(error) => {
 				if (error.status === 401 || error.status === 403) {
@@ -57,7 +60,13 @@ export class GithubAuthComponent implements OnInit {
       complete: () => {
 				this.synchronizingOrgs = false;
         this.orgService.fetchOrganizations();
+				this.checkAuthInfo();
       }
 		});
 	}
+
+
+  setLastOrgSyncAt(last_github_sync_run: any): void {
+    this.lastOrgSyncAt = last_github_sync_run ? formatConnectionTime(last_github_sync_run) : '';
+  }
 }

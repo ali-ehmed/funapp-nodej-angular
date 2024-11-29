@@ -16,9 +16,9 @@ export class RepoService {
   fetchOrgRepositories(orgId: string): void {
     this.http.get<any>(`${this.apiBaseUrl}/api/orgs/${orgId}/repos`, {
       withCredentials: true, // Send HTTP-only cookies automatically
-    })  // replace with your API endpoint
+    })
       .subscribe((data) => {
-        this.repositoriesSubject.next(data);  // update the organizations data
+        this.repositoriesSubject.next(data);
       });
   }
 

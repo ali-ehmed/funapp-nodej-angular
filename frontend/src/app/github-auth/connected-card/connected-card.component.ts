@@ -9,9 +9,9 @@ import { CommonModule } from '@angular/common';
 })
 export class ConnectedCardComponent implements OnInit {
   connectedAt: string = '';
-	lastOrgSyncAt: string = '';
 
   @Input() connectedUser: any;
+  @Input() lastOrgSyncAt: any;
   @Input() synchronizingOrgs: boolean = false;
   @Output() syncOrganizations = new EventEmitter<void>();
   @Output() disconnectFromGithub = new EventEmitter<void>();
@@ -19,11 +19,10 @@ export class ConnectedCardComponent implements OnInit {
   ngOnInit(): void {
 		// Check for the Authorization token in response headers (if it exists in the URL or localStorage)
 		this.connectedAt = formatConnectionTime(this.connectedUser.connectedAt);
-    this.lastOrgSyncAt = !!this.connectedUser.last_github_sync_run ? formatConnectionTime(this.connectedUser.last_github_sync_run) : '';
 	}
 
-  onSyncOrganizations(): void {
-    this.syncOrganizations.emit();  // Emit the userClick event to the parent component
+  async onSyncOrganizations(): Promise<void> {
+    await this.syncOrganizations.emit()
   }
 
   onDisconnectFromGithub(): void {
