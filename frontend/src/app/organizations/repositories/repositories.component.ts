@@ -25,6 +25,7 @@ export class RepositoriesComponent implements OnInit {
   synchronizingRepos = false;
   includedRepos: string[] = [];
   excludedRepos: string[] = [];
+  loadingData = false;
 
   rowData: any[] = [];
   colDefs: ColDef<IRow>[] = [
@@ -75,6 +76,7 @@ export class RepositoriesComponent implements OnInit {
   }
 
   loadOrgRepos(): void {
+    this.loadingData = true;
     // Fetch the initial organizations data
     this.repoService.fetchOrgRepositories(this.orgId);
 
@@ -85,6 +87,8 @@ export class RepositoriesComponent implements OnInit {
       // Initialize includedRepos and excludedRepos based on the data
       this.includedRepos = this.rowData.filter(repo => repo.includeFetch).map(repo => repo.id);
       this.excludedRepos = this.rowData.filter(repo => !repo.includeFetch).map(repo => repo.id);
+
+      this.loadingData = false;
     });
   }
 

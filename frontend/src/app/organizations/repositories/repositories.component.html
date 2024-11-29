@@ -28,5 +28,6 @@
         [columnDefs]="colDefs"
         [defaultColDef]="defaultColDef"
         (cellValueChanged)="onCellValueChanged($event)"
+        [loading]="synchronizingRepos || loadingData"
     ></ag-grid-angular>
 </div>
