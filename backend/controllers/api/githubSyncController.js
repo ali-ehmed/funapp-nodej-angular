@@ -42,21 +42,23 @@ exports.syncOrganizationsData = async (req, res) => {
 // GET /api/orgs/:org_id:/sync-repositories-data
 exports.syncRepositoriesData = async (req, res) => {
   const { org_id } = req.params;
-  const { repository_ids } = req.body;
+  const { include_repository_ids, exclude_epository_ids } = req.body;
   const { accessToken: githubAccessToken } = req.user;
 
-  if (!repository_ids || repository_ids.length === 0) {
-    return res.status(400).json({ message: 'repository_ids is required' });
-  }
-
   try {
-    const repoIds = repository_ids.map((id) => id.toString());
+    if ((!include_repository_ids || include_repository_ids.length === 0) && (!exclude_epository_ids || exclude_epository_ids.length === 0)) {
+      return res.status(400).json({ message: "Both include_repository_ids or exclude_epository_ids can't be empty. Any one must present." });
+    }
+
+    const includeRepoIds = include_repository_ids.map((id) => id.toString());
+    const excludeRepoIds = exclude_epository_ids.map((id) => id.toString());
 
     // Update `includeFetch` for all repositories
-    await Repository.toggleIncludeFetch(repoIds, true);
+    await Repository.toggleIncludeFetch(includeRepoIds, true);
+    await Repository.toggleIncludeFetch(excludeRepoIds, false);
 
     // Fetch all repositories with the specified IDs and current organization in one query
-    const repositories = await Repository.find({ _id: { $in: repoIds }, organization: org_id });
+    const repositories = await Repository.fetchIncludedRepositories(includeRepoIds, org_id);
 
     for (let repository of repositories) {
       console.log(`--- Syncing repository data for: ${repository.fullName} ---`);

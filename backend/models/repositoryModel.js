@@ -40,22 +40,22 @@ RepositorySchema.statics.createOrUpdateRepository = async function (repoData, or
   return repository; // Return the created or updated repository
 };
 
-// Toggle the includeFetch field for a repository
-RepositorySchema.statics.toggleIncludeFetch = async function (repoIds) {
-  // First, set includeFetch to false for all repositories except the ones with passed ids
-  await this.updateMany(
-    { _id: { $nin: repoIds } }, // Exclude repositories with the passed IDs
-    { $set: { includeFetch: false } } // Set includeFetch to false
-  );
+// Fetch repositories by organization ID and includeFetch flag
+RepositorySchema.statics.fetchIncludedRepositories = function (repoIds, org_id) {
+  return this.find({
+    _id: { $in: repoIds },
+    organization: org_id,
+    includeFetch: true,
+  });
+};
 
-  // Then, set includeFetch to true for the repositories with the passed IDs
-  const updatedRepositories = await this.updateMany(
+// Update the includeFetch field for repository_ids
+RepositorySchema.statics.toggleIncludeFetch = async function (repoIds, includeFetch) {
+  await this.updateMany(
     { _id: { $in: repoIds } },
-    { $set: { includeFetch: true } },
+    { $set: { includeFetch } },
     { new: true }
   );
-
-  return updatedRepositories;
 };
 
 // Update last_github_sync_run

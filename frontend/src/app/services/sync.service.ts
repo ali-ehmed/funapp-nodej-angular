@@ -15,9 +15,12 @@ export class SyncService {
     });
   }
 
-  syncOrgRepos(orgId: string, repoIds: string[]): Observable<any> {
+  syncOrgRepos(orgId: string, includeRepoIds: string[], excludeRepoIds: string[]): Observable<any> {
     return this.http.post<any>(`${this.apiBaseUrl}/api/orgs/${orgId}/sync-repositories-data`,
-      { repository_ids: repoIds },
+      {
+        include_repository_ids: includeRepoIds,
+        exclude_epository_ids: excludeRepoIds
+      },
       { withCredentials: true }
     );
   }
