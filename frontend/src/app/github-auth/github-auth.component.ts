@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../services/auth.service';
+import { SyncService } from '../services/sync.service';
+import { OrgService } from '../services/org.service';
 
 @Component({
 	selector: 'app-github-auth',
@@ -8,13 +10,16 @@ import { AuthService } from '../services/auth.service';
 })
 
 export class GithubAuthComponent implements OnInit {
-	organizationsData: any[] = [];
+	synchronizingOrgs: boolean = false;
 
-	constructor(public authService: AuthService) {}
+	constructor(
+		public authService: AuthService,
+		private syncService: SyncService,
+		private orgService: OrgService
+	) {}
 
 	ngOnInit(): void {
-		// Check for the Authorization token in response headers (if it exists in the URL or localStorage)
-		this.checkAuthInfo();
+		this.checkAuthInfo();	
 	}
 
 	checkAuthInfo(): void {
@@ -41,5 +46,18 @@ export class GithubAuthComponent implements OnInit {
 		});
 	}
 
-	syncOrganizations(): void {}
+	syncOrganizations(): void {
+		this.synchronizingOrgs = true;
+		this.syncService.syncOrgs().subscribe({
+      error: (error) => {
+        // Handle the error logic here
+				this.synchronizingOrgs = false;
+        console.error('Error synchronizing organizations', error);
+      },
+      complete: () => {
+				this.synchronizingOrgs = false;
+        this.orgService.fetchOrganizations();
+      }
+		});
+	}
 }

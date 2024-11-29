@@ -3,8 +3,10 @@
         <github-connected-card
             *ngIf="(authService.isAuthenticated$ | async)"
             [connectedUser]="(authService.user$ | async)"
+            [synchronizingOrgs]="synchronizingOrgs"
             (syncOrganizations)="syncOrganizations()"
-            (disconnectFromGithub)="disconnectFromGithub()">
+            (disconnectFromGithub)="disconnectFromGithub()"
+        >
         </github-connected-card>
 
         <router-outlet></router-outlet>

@@ -8,7 +8,7 @@ const Commit = require("../../models/commitModel");
 const PullRequest = require("../../models/pullRequestModel");
 const Issue = require("../../models/issueModel");
 
-// GET /api/orgs/sync-repositories-data
+// GET /api/orgs/sync-organizations-data
 exports.syncOrganizationsData = async (req, res) => {
 	const user = req.user;
 

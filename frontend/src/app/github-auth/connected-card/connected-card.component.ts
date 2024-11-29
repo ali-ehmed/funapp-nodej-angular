@@ -12,6 +12,7 @@ export class ConnectedCardComponent implements OnInit {
 	lastOrgSyncAt: string = '';
 
   @Input() connectedUser: any;
+  @Input() synchronizingOrgs: boolean = false;
   @Output() syncOrganizations = new EventEmitter<void>();
   @Output() disconnectFromGithub = new EventEmitter<void>();
 

@@ -16,7 +16,7 @@ router.get("/auth/check-auth", authenticateUser, authController.checkAuthStatus)
 router.get("/auth/logout", authenticateUser, authController.logout);
 
 // GitHub Controller routes
-router.post("/orgs/sync-repositories-data", authenticateUser, githubSyncController.syncOrganizationsData);
+router.post("/orgs/sync-organizations-data", authenticateUser, githubSyncController.syncOrganizationsData);
 router.post("/orgs/:org_id/sync-repositories-data", authenticateUser, githubSyncController.syncRepositoriesData);
 
 // Organizations Controller routes

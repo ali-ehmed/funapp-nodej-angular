@@ -1,24 +1,26 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GithubAuthComponent } from './github-auth.component';
-import { OrgService } from '../services/org.service';
 import { ConnectedCardComponent } from './connected-card/connected-card.component';
-import { OrganizationsListComponent } from './organizations-list/organizations-list.component';
 import { GithubAuthRoutingModule } from './github-auth-routing.module';
+import { RepositoriesComponent } from '../organizations/repositories/repositories.component';
+import { OrganizationsModule } from '../organizations/organizations.module';
+import { SyncService } from '../services/sync.service';
 
 @NgModule({
   declarations: [
     GithubAuthComponent,
-    OrganizationsListComponent, // Declare the component in the module
+    RepositoriesComponent,
   ],
   imports: [
     GithubAuthRoutingModule,
+    OrganizationsModule,
     ConnectedCardComponent,
     CommonModule, // Import CommonModule for Angular directives (*ngIf, *ngFor)
   ],
-  providers: [OrgService],
+  providers: [SyncService],
   exports: [
-    GithubAuthComponent, // Export the component to make it available outside this module
+    GithubAuthComponent,
   ],
 })
 export class GithubAuthModule {}

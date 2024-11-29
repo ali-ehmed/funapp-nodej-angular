@@ -1,9 +1,11 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { OrganizationsListComponent } from './organizations-list/organizations-list.component';
+import { OrganizationsComponent } from '../organizations/organizations.component';
+import { RepositoriesComponent } from '../organizations/repositories/repositories.component';
 
 const routes: Routes = [
-  { path: '', component: OrganizationsListComponent },
+  { path: '', component: OrganizationsComponent },
+  { path: 'orgs/:org_id/repos', component: RepositoriesComponent }
 ];
 
 @NgModule({
