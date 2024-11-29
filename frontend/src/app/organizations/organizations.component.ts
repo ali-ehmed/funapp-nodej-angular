@@ -1,6 +1,5 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { OrgService } from '../services/org.service';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-organizations',
@@ -10,7 +9,7 @@ import { Router } from '@angular/router';
 export class OrganizationsComponent implements OnInit {
   organizationsData: any[] = [];
 
-  constructor(private orgService: OrgService, private router: Router, private cdRef: ChangeDetectorRef) {}
+  constructor(private orgService: OrgService) {}
 
   ngOnInit(): void {
     this.loadOrgs()
