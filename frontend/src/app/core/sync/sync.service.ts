@@ -9,9 +9,8 @@ import { environment } from '../../../environments/environment';
 export class SyncService {
   private apiBaseUrl = environment.apiUrl;
 
-  // BehaviorSubject to hold the synchronizing state
   private synchronizingSubject = new BehaviorSubject<boolean>(false);
-  synchronizing$ = this.synchronizingSubject.asObservable(); // Expose as Observable
+  synchronizing$ = this.synchronizingSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 

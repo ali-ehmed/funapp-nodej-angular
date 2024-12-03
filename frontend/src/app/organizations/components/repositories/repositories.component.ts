@@ -3,11 +3,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CellClickedEvent, ColDef } from 'ag-grid-community';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RepoService, RepositoryType } from '../../services/repo.service';
 import { SyncService } from '../../../core/sync/sync.service';
 import { Subject, takeUntil } from 'rxjs';
-import { OrganizationType } from '../../services/org.service';
+import { OrganizationType } from '../../../core/org/org.service';
 
 interface IRow {
   id: string;
@@ -64,7 +63,7 @@ export class RepositoriesComponent implements OnInit {
   ) {}
 
   get disabledSyncButton(): boolean {
-    return this.synchronizingRepos || this.loadingRepoData;
+    return this.synchronizingRepos || this.loadingRepoData || this.includedRepos.length === 0;
   }
 
   ngOnInit(): void {

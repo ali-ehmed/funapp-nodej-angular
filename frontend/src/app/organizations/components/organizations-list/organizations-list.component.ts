@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { OrgService } from '../../services';
-import { OrganizationType } from '../../services/org.service';
 import { SyncService } from '../../../core/sync/sync.service';
 import { Subject, takeUntil } from 'rxjs';
+import { OrganizationType, OrgService } from '../../../core/org/org.service';
 
 @Component({
   selector: 'app-organizations',
@@ -21,22 +20,22 @@ export class OrganizationsListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.loadOrgs()
-  }
-
-  loadOrgs(): void {
-    this.loadingOrganizationsData = true;
-    // Fetch the initial organizations data
     this.orgService.fetchOrganizations();
 
-    // Subscribe to the organizations data
+    this.orgService.isOrganizationsLoading().subscribe({
+      next: (loading) => {
+        this.loadingOrganizationsData = loading;
+      },
+      error: (error) => {
+        console.error('Error fetching organizations loading state', error);
+      }
+    });
+
     this.orgService.getOrganizations().subscribe({
       next: (data) => {
-        this.loadingOrganizationsData = false;
         this.organizationsData = data.data ?? [];
       },
       error: (error) => {
-        this.loadingOrganizationsData = false;
         console.error('Error fetching organizations data', error);
       }
     });

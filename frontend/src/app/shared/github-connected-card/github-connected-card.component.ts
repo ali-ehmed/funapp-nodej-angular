@@ -1,9 +1,9 @@
-import { Component, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { formatDateTime } from '../../../helpers/dateHelper';
 import { AuthService, UserType } from '../../core/auth/auth.service';
 import { SyncService } from '../../core/sync/sync.service';
-import { OrgService } from '../../organizations/services/org.service';
 import { Subject, takeUntil } from 'rxjs';
+import { OrgService } from '../../core/org/org.service';
 
 @Component({
   selector: 'github-connected-card',
