@@ -1,19 +1,31 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
+import { OrganizationType } from './org.service';
+
+export interface RepositoryType {
+  description: string;
+  fullName: string;
+  includeFetch: boolean;
+  lastGithubSyncRun: string;
+  name: string;
+  id: string;
+  organization: OrganizationType;
+  private: boolean;
+  repoUrl: string;
+}
 
 @Injectable()
 export class RepoService {
   private apiBaseUrl = environment.apiUrl;
 
-  private repositoriesSubject = new BehaviorSubject<any>({});
+  private repositoriesSubject = new BehaviorSubject<RepositoryType[]>([]);
   repositories$ = this.repositoriesSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
-  // Method to fetch organizations data
-  fetchOrgRepositories(orgId: string): void {
+  fetchRepositories(orgId: string): void {
     this.http.get<any>(`${this.apiBaseUrl}/api/orgs/${orgId}/repos`, {
       withCredentials: true, // Send HTTP-only cookies automatically
     })
@@ -22,7 +34,7 @@ export class RepoService {
       });
   }
 
-  getOrgRepos(): Observable<any> {
+  getRepositories(): Observable<any> {
     return this.repositories$;
   }
 

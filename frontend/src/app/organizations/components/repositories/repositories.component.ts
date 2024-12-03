@@ -1,18 +1,20 @@
 import { Component, OnInit } from '@angular/core';
-import { RepoService } from '../../services/repo.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CellClickedEvent, ColDef } from 'ag-grid-community';
-
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import { SyncService } from '../../services/sync.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { RepoService, RepositoryType } from '../../services/repo.service';
+import { SyncService } from '../../../core/sync/sync.service';
+import { Subject, takeUntil } from 'rxjs';
+import { OrganizationType } from '../../services/org.service';
 
 interface IRow {
-    id: string;
-    name: string;
-    repoUrl: string;
-    fullName: string;
-    includeFetch: boolean;
+  id: string;
+  name: string;
+  repoUrl: string;
+  fullName: string;
+  includeFetch: boolean;
 }
 
 @Component({
@@ -22,12 +24,15 @@ interface IRow {
 })
 export class RepositoriesComponent implements OnInit {
   orgId: string = '';
-  synchronizingRepos = false;
+  organization: OrganizationType | null = null;
+  synchronizingRepos: boolean = false;
   includedRepos: string[] = [];
   excludedRepos: string[] = [];
-  loadingData = false;
+  loadingRepoData: boolean = false;
 
-  rowData: any[] = [];
+  private destroy$ = new Subject<void>();
+
+  rowData: RepositoryType[] = [];
   colDefs: ColDef<IRow>[] = [
     {
       headerName: "ID",
@@ -58,9 +63,8 @@ export class RepositoriesComponent implements OnInit {
     private syncService: SyncService,
   ) {}
 
-  // Computed property to determine if the button should be disabled
   get disabledSyncButton(): boolean {
-    return this.synchronizingRepos;
+    return this.synchronizingRepos || this.loadingRepoData;
   }
 
   ngOnInit(): void {
@@ -68,28 +72,57 @@ export class RepositoriesComponent implements OnInit {
     this.activatedRoute.paramMap.subscribe(params => {
       this.orgId = params.get('org_id') || '';
       if (this.orgId) {
-        this.loadOrgRepos();
+        this.loadRepositories();
       } else {
         this.router.navigate(['/']);
       }
     });
+
+    this.syncService.synchronizing$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((synchronizing: boolean) => {
+        this.synchronizingRepos = synchronizing;
+      });
   }
 
-  loadOrgRepos(): void {
-    this.loadingData = true;
-    // Fetch the initial organizations data
-    this.repoService.fetchOrgRepositories(this.orgId);
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
-    // Subscribe to the organizations data
-    this.repoService.getOrgRepos().subscribe(data => {
-      this.rowData = data.data ?? [];
+  loadRepositories(): void {
+    this.loadingRepoData = true;
+    this.repoService.fetchRepositories(this.orgId);
 
-      // Initialize includedRepos and excludedRepos based on the data
-      this.includedRepos = this.rowData.filter(repo => repo.includeFetch).map(repo => repo.id);
-      this.excludedRepos = this.rowData.filter(repo => !repo.includeFetch).map(repo => repo.id);
+    this.repoService.getRepositories().subscribe({
+      error: (error) => {
+        console.error('Error fetching repositories data', error);
+        this.loadingRepoData = false;
+      },
+      next: (data) => {
+        this.rowData = data.data ?? [];
+        if (this.rowData.length > 0) {
+          this.organization = this.rowData[0].organization;
+        }
 
-      this.loadingData = false;
+        // Initialize includedRepos and excludedRepos based on the data
+        this.includedRepos = this.rowData.filter(repo => repo.includeFetch).map(repo => repo.id);
+        this.excludedRepos = this.rowData.filter(repo => !repo.includeFetch).map(repo => repo.id);
+
+        this.loadingRepoData = false;
+      }
     });
+  }
+
+  async onSyncRepositories(): Promise<void> {
+		this.syncService.syncOrgRepos(this.orgId, this.includedRepos, this.excludedRepos).subscribe({
+      error: (error) => {
+        console.error('Error synchronizing repositories', error);
+      },
+      complete: () => {
+        this.loadRepositories();
+      }
+		});
   }
 
   // Handle cell value changes
@@ -130,20 +163,5 @@ export class RepositoriesComponent implements OnInit {
 
   redirectToDetails(repoId: string): void {
     this.router.navigate(['/orgs', this.orgId, 'repos', repoId, 'details'])
-  }
-
-  onSyncRepositories(): void {
-    this.synchronizingRepos = true;
-		this.syncService.syncOrgRepos(this.orgId, this.includedRepos, this.excludedRepos).subscribe({
-      error: (error) => {
-        // Handle the error logic here
-				this.synchronizingRepos = false;
-        console.error('Error synchronizing repositories', error);
-      },
-      complete: () => {
-				this.synchronizingRepos = false;
-        this.repoService.fetchOrgRepositories(this.orgId);
-      }
-		});
   }
 }

@@ -1,5 +1,5 @@
 <div
-    *ngIf="organizationsData.length > 0; else noOrgData"
+    *ngIf="(!loadingOrganizationsData && !synchronizingOrgs && organizationsData.length > 0); else noOrgData"
     class="flex justify-center border-t-2 p-10"
 >
     <div class="flex flex-col justify-center bg-gray-100 w-4/12">
@@ -24,6 +24,8 @@
 </div>
 <ng-template #noOrgData>
     <div class="flex justify-center items-center mt-14 gap-5">
-        <h1 class="text-xl">There are no Organizations. Sync now load Organizations.</h1>
+        <h1 class="text-xl">
+            {{ synchronizingOrgs ? 'Syncrhonizing Organizations...' : loadingOrganizationsData ? "Loading Organizations..." : "There are no Organizations. Sync now load Organizations." }}
+        </h1>
     </div>
 </ng-template>

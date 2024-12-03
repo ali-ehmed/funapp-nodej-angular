@@ -1,4 +1,4 @@
-<div class="flex p-4 mb-10 bg-white rounded-lg shadow-md space-x-4">
+<div *ngIf="authService.user$ | async as user" class="flex p-4 mb-10 bg-white rounded-lg shadow-md space-x-4">
     <!-- Left Side: GitHub Icon and Avatar -->
     <div class=" flex items-center">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-20 h-20 text-gray-800" fill="currentColor" viewBox="0 0 24 24">
@@ -11,13 +11,13 @@
     <div class="flex w-full justify-between items-end">
         <div class="flex flex-col gap-3">
             <div class="flex items-center gap-3">
-                <img [src]="connectedUser.avatarUrl" alt="Avatar" class="rounded-full w-10 h-10 mt-2">
-                <h2 class="text-xl font-semibold">{{ connectedUser.username }}</h2>
+                <img [src]="user.avatarUrl" alt="Avatar" class="rounded-full w-10 h-10 mt-2">
+                <h2 class="text-xl font-semibold">{{ user.username }}</h2>
             </div>
             <div class="flex items-center gap-3">
                 <span class="text-green-500">Connected</span>
                 |
-                <a [href]="connectedUser.profileUrl" target="_blank" class="text-blue-500 hover:underline">View Profile</a>
+                <a [href]="user.profileUrl" target="_blank" class="text-blue-500 hover:underline">View Profile</a>
                 |
                 <!-- Display connection time -->
                 <p class="text-gray-500">

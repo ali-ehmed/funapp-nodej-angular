@@ -8,7 +8,7 @@ const RepositorySchema = new mongoose.Schema(
     fullName: { type: String, required: true },
     githubRepoId: { type: Number, required: true },
     includeFetch: { type: Boolean, default: false },
-    last_github_sync_run: { type: Date, default: null },
+    lastGithubSyncRun: { type: Date, default: null },
     name: { type: String, required: true },
     organization: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' }, // Link to the organization
     private: { type: Boolean },
@@ -58,11 +58,11 @@ RepositorySchema.statics.toggleIncludeFetch = async function (repoIds, includeFe
   );
 };
 
-// Update last_github_sync_run
+// Update lastGithubSyncRun
 RepositorySchema.methods.updateLastSyncRun = async function() {
-  this.last_github_sync_run = new Date();
+  this.lastGithubSyncRun = new Date();
   await this.save();
-  console.log('Updated repository last_github_sync_run:', this.last_github_sync_run);
+  console.log('Updated repository lastGithubSyncRun:', this.lastGithubSyncRun);
 };
 
 const Repository = mongoose.model('Repository', RepositorySchema);

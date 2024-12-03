@@ -13,7 +13,13 @@ exports.getRepositoriesForOrg = async (req, res, next) => {
     const { page, perPage } = req.pagination;
 
     // Fetch repositories for the specific organization with pagination
-    const repositories = await paginatedResultsHelper.getPaginatedResults(Repository, { organization: org_id }, page, perPage);
+    const repositories = await paginatedResultsHelper.getPaginatedResults(
+      Repository,
+      { organization: org_id },
+      page,
+      perPage,
+      { path: 'organization', select: 'avatarUrl description _id name' }
+    );
 
     const response = repositories.map(repo => ({
       id: repo._id,
@@ -22,6 +28,12 @@ exports.getRepositoriesForOrg = async (req, res, next) => {
       fullName: repo.fullName,
       includeFetch: repo.includeFetch,
       lastGithubSyncRun: repo.lastGithubSyncRun,
+      organization: {
+        avatarUrl: repo.organization.avatarUrl,
+        description: repo.organization.description,
+        id: repo.organization._id,
+        name: repo.organization.name
+      },
     }));
 
     // Set the paginated data in res.locals for the pagination middleware
