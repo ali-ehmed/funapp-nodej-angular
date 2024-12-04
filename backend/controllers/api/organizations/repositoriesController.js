@@ -38,12 +38,16 @@ exports.getRepositoriesForOrg = async (req, res, next) => {
 
     // Set the paginated data in res.locals for the pagination middleware
     res.locals.paginatedData = response;
-    res.locals.totalCount = await Repository.countDocuments({ organization: org_id });
+    res.locals.totalCount = await Repository.countDocuments({
+      organization: org_id
+    });
 
     next();
   } catch (error) {
     console.error('Error fetching repositories for organization:', error);
-    return res.status(500).json({ message: 'Failed to fetch repositories' });
+    return res.status(500).json({
+      message: 'Failed to fetch repositories'
+    });
   }
 };
 
@@ -53,7 +57,10 @@ exports.getRepositoryDetails = async (req, res) => {
     const { org_id, repo_id } = req.params;
 
     // Fetch the collaborators for the given repository
-    const collaborators = await RepositoryCollaborator.find({ repository: repo_id, organization: org_id });
+    const collaborators = await RepositoryCollaborator.find({
+      repository: repo_id,
+      organization: org_id
+    });
 
     // Get stats for each collaborator
     const stats = await Promise.all(
@@ -65,15 +72,26 @@ exports.getRepositoryDetails = async (req, res) => {
     return res.json(stats); // Return the stats for each collaborator
   } catch (error) {
     console.error('Error fetching repository details:', error);
-    return res.status(500).json({ message: 'Failed to fetch repository details' });
+    return res.status(500).json({
+      message: 'Failed to fetch repository details'
+    });
   }
 };
 
 // Helper function to count total commits, pull requests, and issues for a collaborator
 async function getStatsForCollaborator(collaborator, repositoryId) {
-  const totalCommits = await Commit.countDocuments({ author: collaborator._id, repository: repositoryId });
-  const totalPullRequests = await PullRequest.countDocuments({ creator: collaborator._id, repository: repositoryId });
-  const totalIssues = await Issue.countDocuments({ assignee: collaborator._id, repository: repositoryId });
+  const totalCommits = await Commit.countDocuments({
+    author: collaborator._id,
+    repository: repositoryId
+  });
+  const totalPullRequests = await PullRequest.countDocuments({
+    creator: collaborator._id,
+    repository: repositoryId
+  });
+  const totalIssues = await Issue.countDocuments({
+    assignee: collaborator._id,
+    repository: repositoryId
+  });
 
   return {
     collaboratorId: collaborator.githubCollaboratorId,

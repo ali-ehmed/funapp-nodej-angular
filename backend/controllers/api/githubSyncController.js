@@ -10,15 +10,15 @@ const Issue = require("../../models/issueModel");
 
 // GET /api/orgs/sync-organizations-data
 exports.syncOrganizationsData = async (req, res) => {
-	const user = req.user;
+  const user = req.user;
 
   // TODO: Need to handle stale data in the database.
-	try {
+  try {
     const { accessToken: githubAccessToken, _id: userId } = user;
-		// Fetch the organizations for the user
+    // Fetch the organizations for the user
     const organizations = await GithubService.fetchOrganizationsData(githubAccessToken);
 
-		// Loop over each organization and upsert it into the database
+    // Loop over each organization and upsert it into the database
     for (let orgData of organizations) {
       const organization = await Organization.createOrUpdateOrganization(orgData, userId);
 
@@ -33,11 +33,15 @@ exports.syncOrganizationsData = async (req, res) => {
 
     await user.updateLastSyncRun();
 
-		return res.status(200).json({ message: 'Organizations and repositories synced successfully.' });
-	} catch (error) {
-		console.error('Error syncing GitHub data:', error);
-    return res.status(500).json({ message: 'Failed to sync GitHub data' });
-	}
+    return res.status(200).json({
+      message: 'Organizations and repositories synced successfully.'
+    });
+  } catch (error) {
+    console.error('Error syncing GitHub data:', error);
+    return res.status(500).json({
+      message: 'Failed to sync GitHub data'
+    });
+  }
 };
 
 // GET /api/orgs/:org_id:/sync-repositories-data
@@ -49,7 +53,9 @@ exports.syncRepositoriesData = async (req, res) => {
   // TODO: Need to handle stale data in the database.
   try {
     if ((!include_repository_ids || include_repository_ids.length === 0) && (!exclude_epository_ids || exclude_epository_ids.length === 0)) {
-      return res.status(400).json({ message: "Both include_repository_ids or exclude_epository_ids can't be empty. Any one must present." });
+      return res.status(400).json({
+        message: "Both include_repository_ids or exclude_epository_ids can't be empty. Any one must present."
+      });
     }
 
     const includeRepoIds = include_repository_ids.map((id) => id.toString());
@@ -102,9 +108,13 @@ exports.syncRepositoriesData = async (req, res) => {
       await repository.updateLastSyncRun();
     }
 
-    return res.status(200).json({ message: 'Repositories data synced successfully.' });
+    return res.status(200).json({
+      message: 'Repositories data synced successfully.'
+    });
   } catch (error) {
     console.error('Error syncing repository data:', error);
-    return res.status(500).json({ message: 'Failed to sync repository data' });
+    return res.status(500).json({
+      message: 'Failed to sync repository data'
+    });
   }
 }

@@ -6,12 +6,17 @@ function paginationMiddleware(req, res, next) {
     const perPage = parseInt(req.query.perPage) || 10;
 
     // Attach pagination params to the request object for the controller to use
-    req.pagination = { page, perPage };
+    req.pagination = {
+      page,
+      perPage
+    };
 
     next();
   } catch (error) {
     console.error('Error in pagination middleware:', error);
-    return res.status(500).json({ message: 'Pagination error' });
+    return res.status(500).json({
+      message: 'Pagination error'
+    });
   }
 };
 
