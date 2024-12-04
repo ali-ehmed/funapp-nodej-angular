@@ -12,6 +12,7 @@ const Issue = require("../../models/issueModel");
 exports.syncOrganizationsData = async (req, res) => {
 	const user = req.user;
 
+  // TODO: Need to handle stale data in the database.
 	try {
     const { accessToken: githubAccessToken, _id: userId } = user;
 		// Fetch the organizations for the user
@@ -45,6 +46,7 @@ exports.syncRepositoriesData = async (req, res) => {
   const { include_repository_ids, exclude_epository_ids } = req.body;
   const { accessToken: githubAccessToken } = req.user;
 
+  // TODO: Need to handle stale data in the database.
   try {
     if ((!include_repository_ids || include_repository_ids.length === 0) && (!exclude_epository_ids || exclude_epository_ids.length === 0)) {
       return res.status(400).json({ message: "Both include_repository_ids or exclude_epository_ids can't be empty. Any one must present." });
