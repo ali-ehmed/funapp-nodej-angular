@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CellClickedEvent, ColDef } from 'ag-grid-community';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import { RepoService, RepositoryType } from '../../services/repo.service';
+import { RepoService, RepositoryType } from '../../../core/repo/repo.service';
 import { SyncService } from '../../../core/sync/sync.service';
 import { Subject, takeUntil } from 'rxjs';
 import { OrganizationType } from '../../../core/org/org.service';
@@ -90,14 +90,14 @@ export class RepositoriesComponent implements OnInit {
   }
 
   loadRepositories(): void {
-    this.loadingRepoData = true;
+    this.repoService.isReposLoading()
+      .subscribe((loading) => {
+        this.loadingRepoData = loading;
+      });
+
     this.repoService.fetchRepositories(this.orgId);
 
     this.repoService.getRepositories().subscribe({
-      error: (error) => {
-        console.error('Error fetching repositories data', error);
-        this.loadingRepoData = false;
-      },
       next: (data) => {
         this.rowData = data.data ?? [];
         if (this.rowData.length > 0) {
@@ -107,9 +107,10 @@ export class RepositoriesComponent implements OnInit {
         // Initialize includedRepos and excludedRepos based on the data
         this.includedRepos = this.rowData.filter(repo => repo.includeFetch).map(repo => repo.id);
         this.excludedRepos = this.rowData.filter(repo => !repo.includeFetch).map(repo => repo.id);
-
-        this.loadingRepoData = false;
-      }
+      },
+      error: (error) => {
+        console.error('Error fetching repositories data', error);
+      },
     });
   }
 

@@ -2,8 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { formatDateTime } from '../../../helpers/dateHelper';
 import { AuthService, UserType } from '../../core/auth/auth.service';
 import { SyncService } from '../../core/sync/sync.service';
-import { Subject, takeUntil } from 'rxjs';
+import { filter, map, Subject, takeUntil } from 'rxjs';
 import { OrgService } from '../../core/org/org.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { RepoService } from '../../core/repo/repo.service';
 
 @Component({
   selector: 'github-connected-card',
@@ -15,12 +17,15 @@ export class GithubConnectedCardComponent implements OnInit {
   lastOrgSyncAt: string = '';
   user: UserType | null = null;
   synchronizingOrgs: boolean = false;
+  private currentOrgId: string | null = null;
   private destroy$ = new Subject<void>();
 
   constructor(
     public authService: AuthService,
-		public syncService: SyncService,
 		private orgService: OrgService,
+    private router: Router,
+    private repoService: RepoService,
+		private syncService: SyncService,
   ) {}
 
   ngOnInit(): void {
@@ -44,6 +49,15 @@ export class GithubConnectedCardComponent implements OnInit {
       .subscribe((synchronizing) => {
         this.synchronizingOrgs = synchronizing;
       });
+
+    this.router.events
+      .pipe(
+        filter(() => !!this.router.routerState.root.firstChild),
+        map(() => this.getOrgIdFromRoute(this.router.routerState.root))
+      )
+      .subscribe((orgId) => {
+        this.currentOrgId = orgId;
+      });
 	}
 
   ngOnDestroy(): void {
@@ -58,6 +72,10 @@ export class GithubConnectedCardComponent implements OnInit {
       },
       complete: () => {
         this.orgService.fetchOrganizations();
+        if (this.currentOrgId) {
+          this.repoService.fetchRepositories(this.currentOrgId);
+        }
+
         this.authService.checkAuthInfo().subscribe({
           next: (response) => {
             console.log('Refetch auth check response:', response);
@@ -78,6 +96,17 @@ export class GithubConnectedCardComponent implements OnInit {
       console.log('Disconnected from GitHub');
     })
 	}
+
+  private getOrgIdFromRoute(route: ActivatedRoute): string | null {
+    let currentRoute: ActivatedRoute | null = route;
+
+    while (currentRoute?.firstChild) {
+      currentRoute = currentRoute.firstChild;
+    }
+
+    // Extract 'org_id' from the deepest child route
+    return currentRoute?.snapshot.paramMap.get('org_id') || null;
+  }
 }
 
 

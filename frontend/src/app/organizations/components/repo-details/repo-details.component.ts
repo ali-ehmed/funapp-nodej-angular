@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ColDef } from 'ag-grid-community';
-import { RepoService } from '../../services';
+import { RepoService } from '../../../core/repo/repo.service';
 
 interface IRow {
     collaboratorId: string;

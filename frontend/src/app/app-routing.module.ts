@@ -5,7 +5,6 @@ const routes: Routes = [
   { path: '', loadChildren: () => import('./organizations/organizations.module').then(m => m.OrganizationsModule) },
 ];
 
-
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
   exports: [RouterModule],

@@ -22,14 +22,10 @@ export class OrganizationsListComponent implements OnInit {
   ngOnInit(): void {
     this.orgService.fetchOrganizations();
 
-    this.orgService.isOrganizationsLoading().subscribe({
-      next: (loading) => {
+    this.orgService.isOrganizationsLoading()
+      .subscribe((loading) => {
         this.loadingOrganizationsData = loading;
-      },
-      error: (error) => {
-        console.error('Error fetching organizations loading state', error);
-      }
-    });
+      });
 
     this.orgService.getOrganizations().subscribe({
       next: (data) => {
