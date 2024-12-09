@@ -9,7 +9,7 @@ class GithubService {
   // Fetch the authenticated user's data
   async getAuthenticatedUser() {
     try {
-      return this.octokit.users.getAuthenticated();
+      return this.octokit.rest.users.getAuthenticated();
     } catch (error) {
       throw new GithubServiceError('Failed to fetch user data from GitHub', error.status);
     }
@@ -51,7 +51,7 @@ class GithubService {
   // Fetch user info by username
   async getUserInfo(username) {
     try {
-      return await this.octokit.rest.users.getByUsername({
+      return this.octokit.rest.users.getByUsername({
         username,
       });
     } catch (error) {

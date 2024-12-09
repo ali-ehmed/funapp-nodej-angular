@@ -83,7 +83,7 @@ exports.syncRepositoriesData = async (req, res) => {
         const collaborators = await github.getRepoCollaborators(orgName, repository.name);
 
         for (let collaborator of collaborators) {
-          const collaboratorUserInfoData = await github.getUserInfo(collaborator.login);
+          const { data: collaboratorUserInfoData } = await github.getUserInfo(collaborator.login);
           const repoCollaborator = await RepositoryCollaborator.createOrUpdateCollaborator(collaboratorUserInfoData, collaborator, repository._id, repository.organization._id);
 
           // Fetch and store commits made by the collaborator
