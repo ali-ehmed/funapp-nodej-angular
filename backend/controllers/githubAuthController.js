@@ -1,22 +1,40 @@
 const GithubService = require("../services/githubService");
 const AuthService = require("../services/authService");
+const { oauthApp } = require("../config/oauthApp");
 
 // GitHub OAuth2: Start the authentication flow
-exports.githubAuth = (_, res) => res.redirect(GithubService.githubAuthUrl);
+exports.githubAuth = (_, res) => {
+  const state = Math.random().toString(36).substring(2);
+  const { url } = oauthApp.getWebFlowAuthorizationUrl({
+    state,
+    prompt: "consent",
+  });
+
+  res.redirect(url)
+};
 
 // GitHub OAuth2: Callback handler after GitHub has authenticated the user
 exports.githubCallback = async (req, res) => {
-  const { code } = req.query;
+  const { code, state } = req.query;
 
   try {
     // Step 1: Exchange the code for an access token
-    const accessToken = await GithubService.exchangeCodeForToken(code);
+    const { authentication } = await oauthApp.createToken({
+      state,
+      code,
+    });
+    const { token: accessToken } = authentication;
+
     // Step 2: Fetch GitHub user data
-    const profile = await GithubService.fetchGitHubUserData(accessToken);
+    const github = new GithubService(accessToken);
+    const { data: profile } = await github.getAuthenticatedUser();
+
     // Step 3: Find or upsert user in the database
     const user = await AuthService.findOrUpsertUser(profile, accessToken);
+
     // Step 4: Generate JWT
     const token = AuthService.generateJwt(user);
+
     // Step 5: Set JWT as HTTP-only cookie
     res.cookie("authToken", token, {
       httpOnly: true,

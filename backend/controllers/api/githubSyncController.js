@@ -15,15 +15,17 @@ exports.syncOrganizationsData = async (req, res) => {
   // TODO: Need to handle stale data in the database.
   try {
     const { accessToken: githubAccessToken, _id: userId } = user;
+    const github = new GithubService(githubAccessToken);
+
     // Fetch the organizations for the user
-    const organizations = await GithubService.fetchOrganizationsData(githubAccessToken);
+    const organizations = await github.getUserOrganizations();
 
     // Loop over each organization and upsert it into the database
     for (let orgData of organizations) {
       const organization = await Organization.createOrUpdateOrganization(orgData, userId);
 
       // Fetch repositories for this organization
-      const repositories = await GithubService.fetchRepositoriesData(orgData.login, githubAccessToken);
+      const repositories = await github.getOrgRepositories(orgData.login, githubAccessToken);
 
       // Loop through repositories and upsert them into the database
       for (let repoData of repositories) {
