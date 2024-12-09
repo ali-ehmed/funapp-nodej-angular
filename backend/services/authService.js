@@ -5,13 +5,13 @@ const findOrUpsertUser = async (profile, accessToken) => {
 	const user = await User.findOneAndUpdate(
 		{ githubId: profile.id }, // Find user by githubId
 		{
-			githubId: profile.id,
-			username: profile.username,
-			name: profile.name,
-			profileUrl: profile.profileUrl,
-			avatarUrl: profile.avatarUrl,
 			accessToken,
+			avatarUrl: profile.avatar_url,
 			connectedAt: new Date(), // Set connection time
+			githubId: profile.id,
+			name: profile.name,
+			profileUrl: profile.html_url,
+			username: profile.login,
 		},
 		{
 			new: true, // Return the updated document

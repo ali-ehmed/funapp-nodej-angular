@@ -1,220 +1,130 @@
-const axios = require('axios');
-const GithubService = require('../lib/githubServiceError');
+const { Octokit } = require("@octokit/rest");
+const GithubServiceError = require('../lib/githubServiceError');
 
-const redirectUri = 'http://localhost:3000/auth/github/callback';
-const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${process.env.GITHUB_CLIENT_ID}&redirect_uri=${redirectUri}&scope=read:org,repo&login&prompt=consent`;
-
-const exchangeCodeForToken = async (code) => {
-  try {
-    const { data } = await axios.post('https://github.com/login/oauth/access_token', null, {
-      params: {
-        client_id: process.env.GITHUB_CLIENT_ID,
-        client_secret: process.env.GITHUB_CLIENT_SECRET,
-        code,
-        redirect_uri: redirectUri,
-      },
-      headers: {
-        'Accept': 'application/json',
-      },
-    });
-
-    return data.access_token;
-  } catch (error) {
-    throw new GithubService('Failed to exchange code for token', error.status);
+class GithubService {
+  constructor(accessToken) {
+    this.octokit = new Octokit({ auth: accessToken });
   }
-};
 
-const fetchGitHubUserData = async (accessToken) => {
-  try {
-    const { data } = await axios.get('https://api.github.com/user', {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    const { id, login, name, avatar_url, html_url } = data;
-
-    return {
-      id,
-      username: login,
-      name,
-      avatarUrl: avatar_url,
-      profileUrl: html_url,
-    };
-  } catch (error) {
-    throw new GithubService('Failed to fetch user data from GitHub', error.status);
-  }
-};
-
-// Fetch organizations for the authenticated user
-const fetchOrganizationsData = async (accessToken) => {
-  const url = 'https://api.github.com/user/orgs';
-
-  try {
-    return await fetchPaginatedData(url, accessToken);
-  } catch (error) {
-    console.error('Failed to fetch organizations from GitHub', error);
-    throw new GithubService('Failed to fetch organizations from GitHub', error.status);
-  }
-};
-
-// Fetch repositories data for a given organization (with pagination)
-const fetchRepositoriesData = async (orgLogin, accessToken) => {
-  const url = `https://api.github.com/orgs/${orgLogin}/repos`;
-
-  try {
-    return await fetchPaginatedData(url, accessToken);
-  } catch (error) {
-    console.error(`Failed to fetch repositories from GitHub for organization: ${orgLogin}`, error);
-    throw new GithubService(`Failed to fetch repositories from GitHub for organization: ${orgLogin}`. error.status);
-  }
-};
-
-// Fetch collaborators for a repository (with pagination)
-const fetchRepoCollaborators = async (repoFullName, accessToken) => {
-  const url = `https://api.github.com/repos/${repoFullName}/collaborators`;
-
-  try {
-    return await fetchPaginatedData(url, accessToken);
-  } catch (error) {
-    console.error(`Failed to fetch repository collaborators for repository: ${repoFullName}`, error);
-    throw new GithubService(`Failed to fetch repository collaborators for repository: ${repoFullName}`, error.status);
-  }
-};
-
-// Fetch user info by account id
-const fetchUserInfo = async (accountId) => {
-  try {
-    const response = await axios.get(`https://api.github.com/user/${accountId}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Failed to fetch user info for accountId: ${accountId}`, error);
-    throw new GithubService(`Failed to fetch user info for accountId: ${accountId}`, error.status);
-  }
-};
-
-// Fetch all branches in a repository (with pagination)
-const fetchRepositoryBranches = async (repoFullName, accessToken) => {
-  const url = `https://api.github.com/repos/${repoFullName}/branches`;
-
-  try {
-    return await fetchPaginatedData(url, accessToken);
-  } catch (error) {
-    console.error(`Failed to fetch branches for repository: ${repoFullName}`, error);
-    throw new GithubService(`Failed to fetch branches for repository: ${repoFullName}`, error.status);
-  }
-};
-
-// Fetch commits for a specific collaborator across all branches (with pagination)
-const fetchRepoCollaboratorCommits = async (repoFullName, accessToken, collaboratorLogin) => {
-  try {
-    // Get the list of branches in the repository
-    const branches = await fetchRepositoryBranches(repoFullName, accessToken);
-
-    // Fetch commits for each branch for the given collaborator
-    let allCommits = [];
-
-    for (let branch of branches) {
-      const url = `https://api.github.com/repos/${repoFullName}/commits`;
-      const commitsData =  await fetchPaginatedData(
-        url,
-        accessToken,
-        {
-          author: collaboratorLogin, // Filter by collaborator login
-          sha: branch.name, // Fetch commits for this specific branch
-        }
-      );
-
-      allCommits = allCommits.concat(commitsData); // Combine commits from each branch
+  // Fetch the authenticated user's data
+  async getAuthenticatedUser() {
+    try {
+      return this.octokit.rest.users.getAuthenticated();
+    } catch (error) {
+      throw new GithubServiceError('Failed to fetch user data from GitHub.', error.status);
     }
-
-    return allCommits;
-  } catch (error) {
-    console.error(`Failed to fetch commits for collaborator: ${collaboratorLogin} for repository: ${repoFullName}`, error);
-    throw new GithubService(`Failed to fetch commits for collaborator: ${collaboratorLogin} for repository: ${repoFullName}`, error.status);
   }
-};
 
-// Fetch pull requests created by a specific collaborator in a repository
-const fetchRepoCollaboratorPRs = async (repoFullName, accessToken, collaboratorLogin) => {
-  try {
-    const url = `https://api.github.com/repos/${repoFullName}/pulls`;
-    const pullRequestsData = await fetchPaginatedData(url, accessToken);
+  // Fetch paginated organizations for the authenticated user
+  async getUserOrganizations() {
+    try {
+      return await this.octokit.paginate(this.octokit.rest.orgs.listForAuthenticatedUser);
+    } catch (error) {
+      console.log(error);
+      throw new GithubServiceError('Failed to fetch organizations from GitHub.', error.status, error.response?.data);
+    }
+  };
 
-    // Filter pull requests by collaborator (author)
-    const pullRequestsByAuthor = pullRequestsData.filter(pr => pr.user.login === collaboratorLogin);
+  // Fetch repositories paginated data for a given organization
+  async getOrgRepositories(org) {
+    try {
+      return await this.octokit.paginate(this.octokit.rest.repos.listForOrg, {
+        org,
+      });
+    } catch (error) {
+      throw new GithubServiceError(`Failed to fetch org repositories for ${org} from GitHub.`, error.status, error.response?.data);
+    }
+  };
 
-    return pullRequestsByAuthor; // Return the filtered pull requests
-  } catch (error) {
-    console.error(`Failed to fetch pull request for repository: ${repoFullName} and assigned to ${collaboratorLogin}`, error);
-    throw new GithubService(`Failed to fetch pull request for repository: ${repoFullName} and assigned to ${collaboratorLogin}`, error.status);
-  }
-};
+  // Fetch paginated collaborators for a repository
+  async getRepoCollaborators(org, repo) {
+    try {
+      return await this.octokit.paginate(this.octokit.rest.repos.listCollaborators, {
+        owner: org,
+        repo,
+      });
+    } catch (error) {
+      throw new GithubServiceError(`Failed to fetch repo collaborators for ${org}/${repo} from GitHub.`, error.status, error.response?.data);
+    }
+  };
 
-// Fetch issues assigned to a specific collaborator in a repository
-const fetchRepoAssignedIssues = async (repoFullName, accessToken, collaboratorLogin) => {
-  try {
-    const url = `https://api.github.com/repos/${repoFullName}/issues`;
-    return await fetchPaginatedData(
-      url,
-      accessToken,
-      {
-        assignee: collaboratorLogin, // Filter by collaborator login
+  // Fetch user info by username
+  async getUserInfo(username) {
+    try {
+      return this.octokit.rest.users.getByUsername({
+        username,
+      });
+    } catch (error) {
+      throw new GithubServiceError(`Failed to fetch user info for user ${username} from GitHub.`, error.status, error.response?.data);
+    }
+  };
+
+  // Fetch all paginated branches in a repository
+  async getRepoBranches(org, repo) {
+    try {
+      return await this.octokit.paginate(this.octokit.rest.repos.listBranches, {
+        owner: org,
+        repo,
+      });
+    } catch (error) {
+      throw new GithubServiceError(`Failed to fetch repo branches for repo ${org}/${repo} from GitHub.`, error.status, error.response?.data);
+    }
+  };
+
+  // Fetch all commits for a given collaborator in a repository
+  async getRepoCollaboratorAllCommits(org, repo, collaboratorLogin) {
+    try {
+      // Get the list of branches in the repository
+      const branches = await this.getRepoBranches(org, repo);
+
+      // Fetch commits for each branch for the given collaborator
+      let allCommits = [];
+
+      for (let branch of branches) {
+        const commitsData = await this.octokit.paginate(this.octokit.rest.repos.listCommits, {
+          owner: org,
+          repo,
+          sha: branch.name,
+          author: collaboratorLogin
+        });
+
+        allCommits = allCommits.concat(commitsData); // Combine commits from each branch
       }
-    );
-  } catch (error) {
-    console.error(`Failed to fetch issues for repository: ${repoFullName} asssigned to collaborator: ${collaboratorLogin}`, error);
-    throw new GithubService(`Failed to fetch issues for repository: ${repoFullName} asssigned to collaborator: ${collaboratorLogin}`, error.status);
-  }
-};
 
-// Fetch data through pagination
-const fetchPaginatedData = async (url, accessToken, params = {}) => {
-  const allData = []; // To store all the results
-  let page = 1;
-  const perPage = 100; // Number of results per page (can be adjusted if needed)
+      return allCommits;
+    } catch (error) {
+      throw new GithubServiceError(`Failed to fetch repo commits for ${collaboratorLogin} from repo ${org}/${repo}.`, error.status, error.response?.data);
+    }
+  };
 
-  try {
-    while (true) {
-      // Fetch data for the current page
-      const response = await axios.get(url, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-        params: {
-          ...params,   // Add any additional params (e.g., filters)
-          page: page,  // The current page
-          per_page: perPage,  // Number of results per page
-        },
+  // Fetch all pull requests for a given collaborator in a repository
+  async getRepoCollaboratorPRs(org, repo, collaboratorLogin) {
+    try {
+      const pullRequestsData = await this.octokit.paginate(this.octokit.rest.pulls.list, {
+        owner: org,
+        repo,
       });
 
-      // If no data is returned, stop the loop
-      if (response.data.length === 0) {
-        break;
-      }
-
-      // Add the current page's data to the result array
-      allData.push(...response.data);
-
-      // Move to the next page
-      page++;
+      // Filter pull requests by collaborator (author)
+      const pullRequestsByAuthor = pullRequestsData.filter(pr => pr.user.login === collaboratorLogin);
+      return pullRequestsByAuthor;
+    } catch (error) {
+      throw new GithubServiceError(`Failed to fetch repo pulls for ${collaboratorLogin} from repo ${org}/${repo}`, error.status, error.response?.data);
     }
+  };
 
-    return allData; // Return all the fetched data
-  } catch (error) {
-    throw new GithubService(`Failed to fetch data from ${url}: ${error.message}`, error.status);
-  }
-};
+  // Fetch all issues assigned to a given collaborator in a repository
+  async getRepoCollaboratorAssignedIssues(org, repo, collaboratorLogin) {
+    try {
+      return await this.octokit.paginate(this.octokit.rest.issues.listForRepo, {
+        owner: org,
+        repo,
+        assignee: collaboratorLogin,
+      });
+    } catch (error) {
+      throw new GithubServiceError(`Failed to fetch repo issues assigned to ${collaboratorLogin} from repo ${org}/${repo}`, error.status, error.response?.data);
+    }
+  };
+}
 
-module.exports = {
-  githubAuthUrl,
-  exchangeCodeForToken,
-  fetchGitHubUserData,
-  fetchOrganizationsData,
-  fetchRepositoriesData,
-  fetchRepoCollaborators,
-  fetchUserInfo,
-  fetchRepoCollaboratorPRs,
-  fetchRepoCollaboratorCommits,
-  fetchRepoAssignedIssues
-};
+module.exports = GithubService;
