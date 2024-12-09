@@ -11,7 +11,7 @@ class GithubService {
     try {
       return this.octokit.rest.users.getAuthenticated();
     } catch (error) {
-      throw new GithubServiceError('Failed to fetch user data from GitHub', error.status);
+      throw new GithubServiceError('Failed to fetch user data from GitHub.', error.status);
     }
   }
 
@@ -21,7 +21,7 @@ class GithubService {
       return await this.octokit.paginate(this.octokit.rest.orgs.listForAuthenticatedUser);
     } catch (error) {
       console.log(error);
-      throw new GithubServiceError('Failed to fetch organizations from GitHub', error.status);
+      throw new GithubServiceError('Failed to fetch organizations from GitHub.', error.status, error.response?.data);
     }
   };
 
@@ -32,7 +32,7 @@ class GithubService {
         org,
       });
     } catch (error) {
-      throw new GithubServiceError('Failed to fetch org repositories from GitHub', error.status);
+      throw new GithubServiceError(`Failed to fetch org repositories for ${org} from GitHub.`, error.status, error.response?.data);
     }
   };
 
@@ -44,7 +44,7 @@ class GithubService {
         repo,
       });
     } catch (error) {
-      throw new GithubServiceError('Failed to fetch repo collaborators from GitHub', error.status);
+      throw new GithubServiceError(`Failed to fetch repo collaborators for ${org}/${repo} from GitHub.`, error.status, error.response?.data);
     }
   };
 
@@ -55,7 +55,7 @@ class GithubService {
         username,
       });
     } catch (error) {
-      throw new GithubServiceError('Failed to fetch user info from GitHub', error.status);
+      throw new GithubServiceError(`Failed to fetch user info for user ${username} from GitHub.`, error.status, error.response?.data);
     }
   };
 
@@ -67,7 +67,7 @@ class GithubService {
         repo,
       });
     } catch (error) {
-      throw new GithubServiceError('Failed to fetch repo branches from GitHub', error.status);
+      throw new GithubServiceError(`Failed to fetch repo branches for repo ${org}/${repo} from GitHub.`, error.status, error.response?.data);
     }
   };
 
@@ -93,7 +93,7 @@ class GithubService {
 
       return allCommits;
     } catch (error) {
-      throw new GithubServiceError(`Failed to fetch repo commits for ${collaboratorLogin} from GitHub`, error.status);
+      throw new GithubServiceError(`Failed to fetch repo commits for ${collaboratorLogin} from repo ${org}/${repo}.`, error.status, error.response?.data);
     }
   };
 
@@ -109,7 +109,7 @@ class GithubService {
       const pullRequestsByAuthor = pullRequestsData.filter(pr => pr.user.login === collaboratorLogin);
       return pullRequestsByAuthor;
     } catch (error) {
-      throw new GithubServiceError(`Failed to fetch repo pulls for ${collaboratorLogin} from GitHub`, error.status);
+      throw new GithubServiceError(`Failed to fetch repo pulls for ${collaboratorLogin} from repo ${org}/${repo}`, error.status, error.response?.data);
     }
   };
 
@@ -122,7 +122,7 @@ class GithubService {
         assignee: collaboratorLogin,
       });
     } catch (error) {
-      throw new GithubServiceError(`Failed to fetch repo issues assigned to ${collaboratorLogin} from GitHub`, error.status);
+      throw new GithubServiceError(`Failed to fetch repo issues assigned to ${collaboratorLogin} from repo ${org}/${repo}`, error.status, error.response?.data);
     }
   };
 }
