@@ -106,7 +106,7 @@ exports.syncRepositoriesData = async (req, res) => {
         }
       } catch (error) {
         if (error instanceof GithubServiceError && error.status === 403) {
-          console.error("Error fetching user info:", error);
+          console.error("Error fetching Github info:", error);
           continue;
         } else {
           throw new Error(error.message)

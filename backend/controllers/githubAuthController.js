@@ -17,6 +17,7 @@ exports.githubAuth = (_, res) => {
 exports.githubCallback = async (req, res) => {
   const { code, state } = req.query;
 
+  // TODO Check if state matches the one we sent
   try {
     // Step 1: Exchange the code for an access token
     const { authentication } = await oauthApp.createToken({

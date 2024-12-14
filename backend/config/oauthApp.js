@@ -6,5 +6,4 @@ exports.oauthApp = new OAuthApp({
   clientId: process.env.GITHUB_CLIENT_ID,
   clientSecret: process.env.GITHUB_CLIENT_SECRET,
   defaultScopes: ["read:org,repo"],
-  redirectUrl: GithubService.redirectUri,
 });

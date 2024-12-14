@@ -11,7 +11,7 @@ class GithubService {
     try {
       return this.octokit.rest.users.getAuthenticated();
     } catch (error) {
-      throw new GithubServiceError('Failed to fetch user data from GitHub.', error.status);
+      throw new GithubServiceError('Failed to fetch user data from GitHub.', error.status, error.response?.data);
     }
   }
 
