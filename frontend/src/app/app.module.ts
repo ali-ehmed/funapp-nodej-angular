@@ -13,12 +13,12 @@ import { MaterialModule } from './shared/material.module';
     AppComponent,
   ],
   imports: [
-    BrowserModule,
     AppRoutingModule,
-    SharedModule,
-    OrganizationsModule,
+    BrowserModule,
     HttpClientModule,
     MaterialModule,
+    OrganizationsModule,
+    SharedModule,
   ],
   providers: [
     provideAnimationsAsync()

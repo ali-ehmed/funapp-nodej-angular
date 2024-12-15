@@ -20,8 +20,6 @@ export class OrganizationsListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.orgService.fetchOrganizations();
-
     this.orgService.isOrganizationsLoading()
       .subscribe((loading) => {
         this.loadingOrganizationsData = loading;

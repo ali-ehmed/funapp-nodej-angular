@@ -20,22 +20,34 @@
                 </span>
             </div>
         </mat-card-content>
-        <mat-card-actions class="gap-3">
-            <a [disabled]="synchronizingOrgs" mat-stroked-button [href]="user.profileUrl" target="_blank">View Profile</a>
-            <button
-                [disabled]="synchronizingOrgs"
-                (click)="onSyncOrganizations()"
-                mat-stroked-button
-            >
-                {{ synchronizingOrgs ? 'Sync in progress...' : 'Sync Organizations' }}
-            </button>
-            <button
-                [disabled]="synchronizingOrgs" 
-                (click)="onDisconnectFromGithub()"
-                mat-flat-button
-            >
-                Disconnect
-            </button>
+        <mat-card-actions class="flex justify-between">
+            <div class="flex gap-3">
+                <a [disabled]="synchronizingOrgs" mat-stroked-button [href]="user.profileUrl" target="_blank">View Profile</a>
+                <button
+                    [disabled]="synchronizingOrgs"
+                    (click)="onSyncOrganizations()"
+                    mat-stroked-button
+                >
+                    {{ synchronizingOrgs ? 'Sync in progress...' : 'Sync Organizations' }}
+                </button>
+            </div>
+            <div class="flex gap-3">
+                <button
+                    [disabled]="synchronizingOrgs"
+                    mat-raised-button
+                    *ngIf="(orgService.getOrganizations() | async).data?.length > 0"
+                    [routerLink]="['/data-viewer']"
+                >
+                    View All Data
+                </button>
+                <button
+                    [disabled]="synchronizingOrgs" 
+                    (click)="onDisconnectFromGithub()"
+                    mat-flat-button
+                >
+                    Disconnect
+                </button>
+            </div>
         </mat-card-actions>
     </mat-card>
 </div>

@@ -1,0 +1,22 @@
+<ng-container *ngIf="synchronizingData; else loadingDataViewer">
+    <div class="flex items-center gap-2">
+        <mat-spinner diameter="30"></mat-spinner>
+        Synchronizing Data...
+    </div>
+</ng-container>
+
+<ng-template #loadingDataViewer>
+    <ng-container *ngIf="loadingData; else dataViewer">
+        Loading Data...
+    </ng-container>
+</ng-template>
+
+<ng-template #dataViewer>
+    <h1 class="text-2xl">
+        Data Viewer
+        <a [routerLink]="['']" class="flex items-center gap-1 text-sm font-semibold mat-color-primary hover:underline">
+            <mat-icon fontIcon="keyboard_backspace"></mat-icon>
+            Back to Main Menu
+        </a>
+    </h1>
+</ng-template>

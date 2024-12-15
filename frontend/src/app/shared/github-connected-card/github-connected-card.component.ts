@@ -22,13 +22,15 @@ export class GithubConnectedCardComponent implements OnInit {
 
   constructor(
     public authService: AuthService,
-		private orgService: OrgService,
+		public orgService: OrgService,
     private router: Router,
     private repoService: RepoService,
 		private syncService: SyncService,
   ) {}
 
   ngOnInit(): void {
+    this.orgService.fetchOrganizations();
+
     this.authService.user$
       .pipe(takeUntil(this.destroy$))
       .subscribe((user) => {
