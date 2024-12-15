@@ -1,23 +1,31 @@
-<a [routerLink]="['']" class="text-sm font-semibold text-blue-500 hover:underline">
-    Back to Organizations
-</a>
-<div class="flex border-b-2 items-center justify-between gap-6 py-6 my-6">
-    <h1 class="text-2xl" *ngIf="(!loadingRepoData && !synchronizingRepos); else noRepoData">
-        Repositories for <strong *ngIf="!!organization">{{organization.name}}</strong>
-    </h1>
-    <ng-template #noRepoData>
+<div class="flex items-center justify-between gap-6 mb-5">
+    <ng-container *ngIf="synchronizingRepos; else loadingRepos">
+        <div class="flex items-center gap-2">
+            <mat-spinner diameter="30"></mat-spinner>
+            Synchronizing Repositories...
+        </div>
+    </ng-container>
+
+    <ng-template #loadingRepos>
+        <ng-container *ngIf="loadingRepoData; else reposData">
+            Loading Repositories...
+        </ng-container>
+    </ng-template>
+
+    <ng-template #reposData>
         <h1 class="text-2xl">
-            {{  synchronizingRepos ? 'Syncrhonizing Repositories...' : loadingRepoData ? "Loading Repositories..." : "Repositories" }}
+            Repositories for <strong *ngIf="!!organization">{{organization.name}}</strong>
+            <a [routerLink]="['']" class="flex items-center gap-1 text-sm font-semibold mat-color-primary hover:underline">
+                <mat-icon fontIcon="keyboard_backspace"></mat-icon>
+                Back to Organizations
+            </a>
         </h1>
     </ng-template>
+    
     <button
+        mat-stroked-button
         [disabled]="disabledSyncButton"
         (click)="onSyncRepositories()"
-        [ngClass]="{
-            'cursor-not-allowed opacity-50 outline': disabledSyncButton,
-            'text-white bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-300': !disabledSyncButton
-        }"
-        class="text-sm py-1 px-3 h-8 rounded-md focus:outline-none"
     >
         {{ synchronizingRepos ? 'Sync in progress...' : 'Sync Repositories Data' }}
     </button>

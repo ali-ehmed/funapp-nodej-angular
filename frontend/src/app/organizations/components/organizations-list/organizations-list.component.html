@@ -1,31 +1,37 @@
 <div
     *ngIf="(!loadingOrganizationsData && !synchronizingOrgs && organizationsData.length > 0); else noOrgData"
-    class="flex justify-center border-t-2 p-10"
 >
-    <div class="flex flex-col justify-center bg-gray-100 w-4/12">
-        <div class="mb-6">
-            <h1 class="text-2xl">Organizations</h1>
-        </div>
-        <div class="flex flex-col gap-6">
-            <div
-                *ngFor="let org of organizationsData"
-                class="flex items-center bg-white p-4 rounded-lg shadow-lg"
-            >
-                <img [src]="org.avatarUrl" alt="Org Avatar" class="w-16 h-16 rounded-full mr-4">
-                <div>
-                    <a href="#" [routerLink]="['/orgs', org.id, 'repos']" class="text-xl font-semibold text-blue-500 hover:underline">
-                        {{org.name}}
-                    </a>
-                    <p class="text-gray-600 text-sm">Total Repositories: {{org.totalRepositories}}</p>
-                </div>
-            </div>
-        </div>
+    <div class="mb-6">
+        <h1 class="text-2xl">My Organizations</h1>
+    </div>
+    <div class="flex gap-4">
+        <mat-card *ngFor="let org of organizationsData" appearance="outlined">
+            <mat-card-header>
+                <img mat-card-avatar [src]="org.avatarUrl" alt="Org Avatar">
+                <mat-card-title>{{org.name}}</mat-card-title>
+                <mat-card-subtitle>{{org.totalRepositories}} repositories</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-actions>
+                <button mat-button [routerLink]="['/orgs', org.id, 'repos']">View Details</button>
+            </mat-card-actions>
+        </mat-card>
     </div>
 </div>
 <ng-template #noOrgData>
-    <div class="flex justify-center items-center mt-14 gap-5">
-        <h1 class="text-xl">
-            {{ synchronizingOrgs ? 'Syncrhonizing Organizations...' : loadingOrganizationsData ? "Loading Organizations..." : "There are no Organizations. Sync now load Organizations." }}
-        </h1>
-    </div>
+    <h1 class="flex items-center gap-3 text-xl">
+        <ng-container *ngIf="synchronizingOrgs; else loadingOrgs">
+            <mat-spinner diameter="30"></mat-spinner>
+            Synchronizing Organizations...
+        </ng-container>
+
+        <ng-template #loadingOrgs>
+            <ng-container *ngIf="loadingOrganizationsData; else noOrganizations">
+                Loading Organizations...
+            </ng-container>
+        </ng-template>
+
+        <ng-template #noOrganizations>
+            There are no Organizations. Sync now to load Organizations.
+        </ng-template>
+    </h1>
 </ng-template>

@@ -5,6 +5,8 @@ import { HttpClientModule } from '@angular/common/http';
 import { SharedModule } from './shared/shared.module';
 import { AppRoutingModule } from './app-routing.module';
 import { OrganizationsModule } from './organizations/organizations.module';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { MaterialModule } from './shared/material.module';
 
 @NgModule({
   declarations: [
@@ -15,9 +17,12 @@ import { OrganizationsModule } from './organizations/organizations.module';
     AppRoutingModule,
     SharedModule,
     OrganizationsModule,
-    HttpClientModule
+    HttpClientModule,
+    MaterialModule,
   ],
-  providers: [],
+  providers: [
+    provideAnimationsAsync()
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

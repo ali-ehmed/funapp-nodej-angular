@@ -5,6 +5,7 @@ import { RepoDetailsComponent } from './components/repo-details/repo-details.com
 import { RepositoriesComponent } from './components/repositories/repositories.component';
 import { AgGridModule } from 'ag-grid-angular';
 import { OrganizationsRoutingModule } from './organizations-routing.module';
+import { MaterialModule } from '../shared/material.module';
 
 @NgModule({
   declarations: [
@@ -15,7 +16,8 @@ import { OrganizationsRoutingModule } from './organizations-routing.module';
   imports: [
     CommonModule,
     AgGridModule,
-    OrganizationsRoutingModule
+    OrganizationsRoutingModule,
+    MaterialModule,
   ],
   providers: [],
   exports: [],
