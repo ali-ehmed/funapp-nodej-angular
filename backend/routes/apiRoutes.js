@@ -10,6 +10,7 @@ const authController = require("../controllers/api/authController");
 const githubSyncController = require("../controllers/api/githubSyncController");
 const organizationsController = require("../controllers/api/organizationsController");
 const repositoriesController = require("../controllers/api/organizations/repositoriesController");
+const dataViewerController = require("../controllers/api/dataViewerController");
 
 // Auth Controller routes
 router.get("/auth/check-auth", authenticateUser, authController.checkAuthStatus);
@@ -35,6 +36,14 @@ router.get('/orgs/:org_id/repos',
   repositoriesController.getRepositoriesForOrg,
   injectPaginationMetadata
 );
-router.get('/orgs/:org_id/repos/:repo_id/details',authenticateUser, repositoriesController.getRepositoryDetails);
+router.get('/orgs/:org_id/repos/:repo_id/details', authenticateUser, repositoriesController.getRepositoryDetails);
+
+// Data Viewer Controller routes
+router.get('/:integration/data-viewer/:collection',
+  authenticateUser,
+  paginationMiddleware,
+  dataViewerController.getData,
+  injectPaginationMetadata
+);
 
 module.exports = router;

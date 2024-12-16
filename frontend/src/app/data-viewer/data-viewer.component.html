@@ -1,18 +1,12 @@
-<ng-container *ngIf="synchronizingData; else loadingDataViewer">
+<ng-container *ngIf="synchronizingData; else dataViewer">
     <div class="flex items-center gap-2">
         <mat-spinner diameter="30"></mat-spinner>
         Synchronizing Data...
     </div>
 </ng-container>
 
-<ng-template #loadingDataViewer>
-    <ng-container *ngIf="loadingData; else dataViewer">
-        Loading Data...
-    </ng-container>
-</ng-template>
-
 <ng-template #dataViewer>
-    <h1 class="text-2xl">
+    <h1 class="text-2xl mb-6">
         Data Viewer
         <a [routerLink]="['']" class="flex items-center gap-1 text-sm font-semibold mat-color-primary hover:underline">
             <mat-icon fontIcon="keyboard_backspace"></mat-icon>
@@ -20,3 +14,44 @@
         </a>
     </h1>
 </ng-template>
+
+<div class="flex items-center gap-4">
+    <mat-form-field appearance="outline" class="w-1/4">
+        <mat-label>Active Integrations</mat-label>
+        <mat-select [(ngModel)]="selectedIntegration">
+            <mat-option value="github">GitHub</mat-option>
+        </mat-select>
+    </mat-form-field>
+
+    <!-- Entities Dropdown -->
+    <mat-form-field appearance="outline" class="w-1/4">
+        <mat-label>Entities</mat-label>
+        <mat-select [(ngModel)]="selectedCollection" (selectionChange)="onCollectionChange($event.value)">
+            <mat-option *ngFor="let collection of collections" [value]="collection.slug">{{ collection.name }}</mat-option>
+        </mat-select>
+    </mat-form-field>
+
+    <!-- Search Bar -->
+    <mat-form-field appearance="outline" class="w-1/2">
+        <mat-label>Search</mat-label>
+        <input
+            matInput
+            [(ngModel)]="searchQuery"
+            placeholder="Enter a keyword"
+            (keyup)="onSearch(searchQuery)"
+        />
+    </mat-form-field>
+</div>
+
+<div class="content" style="width: 100%; height: 100%;">
+    <ag-grid-angular
+        [pagination]="false"
+        [domLayout]="'autoHeight'"
+        style="width: 100%; height: 100%;"
+        class="ag-theme-quartz"
+        [rowData]="rowData"
+        [columnDefs]="columnDefs"
+        [defaultColDef]="defaultColDef"
+        [loading]="synchronizingData || loadingData"
+    ></ag-grid-angular>
+</div>

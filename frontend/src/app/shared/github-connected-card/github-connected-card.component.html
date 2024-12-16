@@ -1,5 +1,5 @@
 <div *ngIf="authService.user$ | async as user">
-    <mat-card class="space-y-3 mb-9">
+    <mat-card class="space-y-1 mb-9">
         <mat-card-header>
             <img mat-card-avatar [src]="user.avatarUrl" alt="Avatar">
             <mat-card-title>{{ user.name }}</mat-card-title>

@@ -1,6 +1,5 @@
 /* You can add global styles to this file, and also import other style files */
 @tailwind base;
-@tailwind components;
 @tailwind utilities;
 
 body {
@@ -9,3 +8,7 @@ body {
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+mat-form-field .mdc-text-field--outlined .mdc-notched-outline__notch {
+  border-right: 0;
+}
