@@ -1,7 +1,9 @@
+const mongoose = require('mongoose');
+
 const Organization = require("../../models/organizationModel");
 const Repository = require("../../models/repositoryModel");
 
-const paginatedResultsHelper = require('../../helpers/paginationResultsHelper');
+const dataFetcher = require('../../lib/dataFetcher');
 
 // GET /api/orgs
 exports.getOrganizations = async (req, res, next) => {
@@ -9,7 +11,12 @@ exports.getOrganizations = async (req, res, next) => {
     const { page, perPage } = req.pagination;
 
     // Fetch organizations for the current user with pagination
-    const organizations = await paginatedResultsHelper.getPaginatedResults(Organization, { user: req.user._id }, page, perPage);
+    const { results: organizations, totalRecords } = await dataFetcher({
+      model: Organization,
+      filters: { user: new mongoose.Types.ObjectId(req.user._id) },
+      page,
+      perPage,
+    });
 
     // Get the total repositories count for each organization
     const response = await Promise.all(
@@ -27,7 +34,7 @@ exports.getOrganizations = async (req, res, next) => {
 
     // Set the paginated data in res.locals for the pagination middleware
     res.locals.paginatedData = response;
-    res.locals.totalCount = await Organization.countDocuments({ user: req.user._id });
+    res.locals.totalCount = totalRecords;
 
     next();
   } catch (error) {

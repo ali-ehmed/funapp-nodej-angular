@@ -13,6 +13,7 @@ const PullRequestSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+PullRequestSchema.index({ title: 'text' });
 PullRequestSchema.index({ githubPrId: 1, repository: 1, organization: 1 }, { unique: true });
 
 PullRequestSchema.statics.createOrUpdatePullRequest = async function (prData, repositoryCollaboratorId, repositoryId, organizationId) {
