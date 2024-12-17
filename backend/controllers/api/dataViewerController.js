@@ -61,7 +61,6 @@ exports.getData = async (req, res, next) => {
   }
 };
 
-
 const dataViewer = require('../../lib/dataViewer/dataViewer');
 
 exports.getDataNew = async (req, res, next) => {
