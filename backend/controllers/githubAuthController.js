@@ -40,7 +40,7 @@ exports.githubCallback = async (req, res) => {
     res.cookie("authToken", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 3600000, // 1 hour
+      maxAge: 3 * 60 * 60 * 1000, // 3 hours in milliseconds
     });
 
     // Redirect to frontend

@@ -13,6 +13,11 @@ const OrganizationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+OrganizationSchema.index(
+  { name: 'text', description: 'text' },
+  { weights: { name: 10, description: 5 } }
+);
+
 OrganizationSchema.statics.createOrUpdateOrganization = async function (orgData, userId) {
   // Find the organization by both githubOrgId and userId
   const organization = await this.findOneAndUpdate(

@@ -12,6 +12,8 @@ const CommitSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+CommitSchema.index({ sha: 'text', message: 'text' });
+
 CommitSchema.index({ sha: 1, repository: 1, organization: 1 }, { unique: true });
 
 CommitSchema.statics.createOrUpdateCommit = async function (commitData, repositoryCollaboratorId, repositoryId, organizationId) {

@@ -12,7 +12,15 @@ const RepositoryCollaboratorSchema = new mongoose.Schema({
   username: { type: String },
 });
 
-RepositoryCollaboratorSchema.index({ githubCollaboratorId: 1, repository: 1, organization: 1 }, { unique: true });
+RepositoryCollaboratorSchema.index(
+  { name: 'text', username: 'text' },
+  { weights: { name: 10, username: 5 } }
+);
+
+RepositoryCollaboratorSchema.index(
+  { githubCollaboratorId: 1, repository: 1, organization: 1 },
+  { unique: true }
+);
 
 RepositoryCollaboratorSchema.statics.createOrUpdateCollaborator = async function (userInfoData, collaboratorData, repositoryId, organizationId) {
   // Use findOneAndUpdate to either update or create the collaborator

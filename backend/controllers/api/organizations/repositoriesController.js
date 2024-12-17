@@ -1,10 +1,12 @@
+const mongoose = require('mongoose');
+
 const Repository = require("../../../models/repositoryModel");
 const RepositoryCollaborator = require('../../../models/repositoryCollaboratorModel');
 const Commit = require('../../../models/commitModel');
 const PullRequest = require('../../../models/pullRequestModel');
 const Issue = require('../../../models/issueModel');
 
-const paginatedResultsHelper = require('../../../helpers/paginationResultsHelper');
+const dataFetcher = require('../../../lib/dataFetcher');
 
 // GET /api/orgs/:org_id/repos
 exports.getRepositoriesForOrg = async (req, res, next) => {
@@ -12,14 +14,21 @@ exports.getRepositoriesForOrg = async (req, res, next) => {
     const { org_id } = req.params;
     const { page, perPage } = req.pagination;
 
-    // Fetch repositories for the specific organization with pagination
-    const repositories = await paginatedResultsHelper.getPaginatedResults(
-      Repository,
-      { organization: org_id },
+    const { results: repositories, totalRecords } = await dataFetcher({
+      model: Repository,
+      filters: { "organization._id": new mongoose.Types.ObjectId(org_id) },
       page,
       perPage,
-      { path: 'organization', select: 'avatarUrl description _id name' }
-    );
+      populate: [
+        {
+          foreignField: '_id',
+          from: 'organizations',
+          path: 'organization',
+          select: 'avatarUrl description _id name'
+        }
+      ],
+      sort: { createdAt: -1 }
+    });
 
     const response = repositories.map(repo => ({
       id: repo._id,
@@ -38,9 +47,7 @@ exports.getRepositoriesForOrg = async (req, res, next) => {
 
     // Set the paginated data in res.locals for the pagination middleware
     res.locals.paginatedData = response;
-    res.locals.totalCount = await Repository.countDocuments({
-      organization: org_id
-    });
+    res.locals.totalCount = totalRecords;
 
     next();
   } catch (error) {

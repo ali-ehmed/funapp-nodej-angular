@@ -17,6 +17,11 @@ const RepositorySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+RepositorySchema.index(
+  { fullName: 'text', name: 'text' },
+  { weights: { fullName: 10, name: 5 } }
+);
+
 RepositorySchema.index({ githubRepoId: 1, organization: 1 }, { unique: true });
 
 RepositorySchema.statics.createOrUpdateRepository = async function (repoData, organizationId) {
