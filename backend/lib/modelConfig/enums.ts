@@ -2,7 +2,7 @@ export enum CollectionName {
   COMMITS = "commits",
   ISSUES = "issues",
   ORGANIZATIONS = "organizations",
-  PULL_REQUESTS = "pull-requests",
+  PULL_REQUESTS = "pullrequests",
   REPOSITORIES = "repositories",
-  REPOSITORY_COLLABORATORS = "repository-collaborators",
+  REPOSITORY_COLLABORATORS = "repositorycollaborators",
 }

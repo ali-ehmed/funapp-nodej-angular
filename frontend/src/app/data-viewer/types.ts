@@ -1,8 +1,8 @@
 export enum CollectionEnum {
   Organizations = 'organizations',
   Repositories = 'repositories',
-  RepositoryCollaborators = 'repository-collaborators',
-  PullRequests = 'pull-requests',
+  RepositoryCollaborators = 'repositorycollaborators',
+  PullRequests = 'pullrequests',
   Commits = 'commits',
   Issues = 'issues'
 }

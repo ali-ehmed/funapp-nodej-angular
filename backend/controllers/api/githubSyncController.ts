@@ -62,7 +62,7 @@ export const syncOrganizationsData = async (req: Request, res: GithubSyncRespons
 
 // GET /api/orgs/:org_id/sync-repositories-data
 export const syncRepositoriesData = async (req: Request, res: GithubSyncResponse): Promise<void> => {
-  const { accessToken: githubAccessToken } = await currentUser(req.cookies.authToken);
+  const { accessToken: githubAccessToken } = await currentUser(req);
   const { org_id } = req.params;
   const { include_repository_ids, exclude_repository_ids } = req.body;
 
@@ -80,9 +80,9 @@ export const syncRepositoriesData = async (req: Request, res: GithubSyncResponse
       });
       return;
     }
+    const includeRepoIds = include_repository_ids?.map((id: string) => new mongoose.Types.ObjectId(id.toString())) || [];
+    const excludeRepoIds = exclude_repository_ids?.map((id: string) => new mongoose.Types.ObjectId(id.toString())) || [];
 
-    const includeRepoIds = include_repository_ids.map((id: string) => new mongoose.Types.ObjectId(id.toString()));
-    const excludeRepoIds = exclude_repository_ids.map((id: string) => new mongoose.Types.ObjectId(id.toString()));
 
     // Update `includeFetch` for repositories
     await Repository.toggleIncludeFetch(includeRepoIds, true);

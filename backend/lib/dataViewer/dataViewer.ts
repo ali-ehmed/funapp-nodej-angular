@@ -102,7 +102,7 @@ const buildColumns = (modelConfig: ModelConfig<Document>): ColumnConfig[] => {
 
   const referenceColumns: ColumnConfig[] = modelConfig.references.flatMap((ref) =>
     ref.fields.map((field) => ({
-      field: `${ref.field}.${field === "_id" ? "id" : field}`,
+      field: `${ref.field}-${field === "_id" ? "id" : field}`,
       headerName: `${capitalize(ref.field as string)} ${capitalize(
         field === "_id" ? "id" : field
       )}`,
@@ -126,7 +126,7 @@ const buildRows = (results: Document[], modelConfig: ModelConfig<Document>): Row
       const refData = (item as Record<string, any>)[ref.field as string] || {};
 
       ref.fields.forEach((refField) => {
-        row[`${ref.field}.${refField === "_id" ? "id" : refField}`] =
+        row[`${ref.field}-${refField === "_id" ? "id" : refField}`] =
           refData[refField] || null;
       });
     });

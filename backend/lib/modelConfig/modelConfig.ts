@@ -34,7 +34,7 @@ const ModelConfigSchema: Record<CollectionName, ModelConfig<any>> = {
       {
         collectionName: CollectionName.REPOSITORY_COLLABORATORS,
         field: "assignee",
-        fields: ["_id", "name", "username"] as (keyof IRepositoryCollaborator)[],
+        fields: ["_id", "name"] as (keyof IRepositoryCollaborator)[],
       },
       {
         collectionName: CollectionName.REPOSITORIES,

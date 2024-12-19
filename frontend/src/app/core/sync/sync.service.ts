@@ -33,7 +33,7 @@ export class SyncService {
     return this.http.post<any>(`${this.apiBaseUrl}/api/orgs/${orgId}/sync-repositories-data`,
       {
         include_repository_ids: includeRepoIds,
-        exclude_epository_ids: excludeRepoIds
+        exclude_repository_ids: excludeRepoIds
       },
       { withCredentials: true }
     ).pipe(
