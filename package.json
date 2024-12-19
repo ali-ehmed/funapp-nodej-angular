@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "start:frontend": "cd frontend && ng serve",
-    "start:backend": "node backend/app.js",
+    "start:backend": "npx ts-node backend/app.ts",
+    "compile:backend": "cd backend && tsc",
     "start:db": "docker-compose up",
     "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\""
   },
