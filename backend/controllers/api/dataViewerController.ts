@@ -70,20 +70,16 @@ export const getCollectionsData = async (req: Request, res: Response, next: Next
 };
 
 // GET /api/:integration/data-viewer/:collection (New Implementation)
-export const getDataNew = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getCollectionsDataNew = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { collection } = req.params;
-  const { search = "", filters = "{}", sort: sortAttr, sortOrder = "asc" } = req.query;
   const { page, perPage } = paginationParams(req);
 
   try {
     // Fetch data using dataViewer
     const { columns, rows, totalRecords } = await dataViewer(collection, {
-      search: search as string,
-      filters: JSON.parse(filters as string),
-      sort: sortAttr as string,
-      sortOrder: sortOrder as string,
-      page: parseInt(page as unknown as string, 10),
-      perPage: parseInt(perPage as unknown as string, 10),
+      ...req.query,
+      page,
+      perPage,
     });
 
     res.locals.paginatedData = { columns, rows };

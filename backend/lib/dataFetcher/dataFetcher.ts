@@ -45,7 +45,7 @@ const dataFetcher = async <T>({
     const results = await model.aggregate(pipeline).exec();
 
     // Count total records without pagination
-    const totalRecords = await model.countDocuments(nonTextFilters);
+    const totalRecords = await getTotalRecords(model, filters, populate);
 
     return { results, totalRecords };
   } catch (error) {
@@ -53,6 +53,34 @@ const dataFetcher = async <T>({
     throw error;
   }
 };
+
+const getTotalRecords = async <T>(
+  model: Model<T>,
+  filters: FilterQuery<T>,
+  populate: PopulateOption[] | null
+): Promise<number> => {
+  const pipeline: any[] = [];
+
+  // 1. Handle Text Search
+  const { textSearch, nonTextFilters } = buildTextSearch(filters);
+  if (textSearch) pipeline.push({ $match: textSearch });
+
+  // 2. Add Lookups for References
+  const lookupStages = buildLookups(populate);
+  pipeline.push(...lookupStages);
+
+  // 3. Add Filtering
+  if (Object.keys(nonTextFilters).length > 0) {
+    pipeline.push({ $match: nonTextFilters });
+  }
+
+  // 4. Count the total documents
+  pipeline.push({ $count: "total" });
+
+  const result = await model.aggregate(pipeline).exec();
+  return result.length > 0 ? result[0].total : 0;
+};
+
 
 // Helper: Build Text Search
 const buildTextSearch = <T>(filters: FilterQuery<T>) => {
