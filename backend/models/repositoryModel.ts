@@ -79,7 +79,7 @@ RepositorySchema.statics.createOrUpdateRepository = async function (
         name: repoData.name,
         organization: organizationId,
         repoUrl: repoData.html_url,
-        private: repoData.private,
+        private: !!repoData.private,
       },
     },
     { upsert: true, new: true }

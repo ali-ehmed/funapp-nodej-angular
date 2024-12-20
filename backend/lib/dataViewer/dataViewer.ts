@@ -6,6 +6,8 @@ import { QueryParams, PopulateConfig, ColumnConfig, RowConfig } from "./types";
 
 import dataFetcher from "../dataFetcher/dataFetcher";
 
+const REFERENCE_FIELD_SEPARATOR = "-";
+
 // Main function: Orchestrates data fetching and transformation
 const dataViewer = async (collectionName: string, params: QueryParams) => {
   // Check if the provided collectionName is valid
@@ -24,7 +26,7 @@ const dataViewer = async (collectionName: string, params: QueryParams) => {
 
   // Build query and sorting
   const searchQuery = buildSearchQuery(Model, search);
-  const parsedFilters = parseFilters(filters);
+  const parsedFilters = parseFilters(Model, filters);
   const query = { ...parsedFilters, ...searchQuery };
   const sortQuery = buildSortQuery(sort, sortOrder, searchQuery);
 
@@ -62,19 +64,42 @@ const buildSearchQuery = (Model: Model<Document>, search: string) => {
 };
 
 // Parse Filters
-const parseFilters = (filters: string) => {
+const parseFilters = (Model: Model<Document>, filters: string) => {
   const query: Record<string, any> = {};
   const parsedFilters = JSON.parse(filters);
 
+  // Get schema paths from the model
+  const schemaPaths = Model.schema.paths;
+
   for (const [field, condition] of Object.entries(parsedFilters)) {
-    if (field.includes(".")) {
-      const [ref, refField] = field.split(".");
+    if (field.includes(REFERENCE_FIELD_SEPARATOR)) {
+      const [ref, refField] = field.split(REFERENCE_FIELD_SEPARATOR);
       query[`${ref}.${refField === "id" ? "_id" : refField}`] =
-        refField === "id" && typeof condition === "string"? new mongoose.Types.ObjectId(condition) : condition;
+        refField === "id" && typeof condition === "string"
+          ? new mongoose.Types.ObjectId(condition)
+          : condition;
     } else {
-      query[field] = condition;
+      // Check the field type in the schema
+      const fieldType = schemaPaths[field]?.instance;
+
+      if (fieldType === "Date") {
+        // Convert conditions to Date objects
+        if (typeof condition === "object" && condition !== null) {
+          query[field] = {};
+          for (const [operator, value] of Object.entries(condition)) {
+            query[field][operator] = new Date(value as string);
+          }
+        } else if (typeof condition === "string") {
+          query[field] = new Date(condition);
+        } else {
+          query[field] = condition; // Handle non-date conditions
+        }
+      } else {
+        query[field] = condition; // Non-date fields remain unchanged
+      }
     }
   }
+
   return query;
 };
 
@@ -95,19 +120,52 @@ const buildSortQuery = (sortAttr: string | undefined, sortOrder: string, searchQ
 
 // Build Dynamic Columns
 const buildColumns = (modelConfig: ModelConfig<Document>): ColumnConfig[] => {
-  const mainColumns: ColumnConfig[] = modelConfig.fields.map((field) => ({
-    field: field === "_id" ? "id" : (field as string),
-    headerName: capitalize(field === "_id" ? "id" : (field as string)),
-  }));
+  const { model, fields, filterFields = [], references } = modelConfig;
+  // Extract field types from Mongoose schema
+  const schemaPaths = model.schema.paths;
 
-  const referenceColumns: ColumnConfig[] = modelConfig.references.flatMap((ref) =>
-    ref.fields.map((field) => ({
-      field: `${ref.field}-${field === "_id" ? "id" : field}`,
-      headerName: `${capitalize(ref.field as string)} ${capitalize(
-        field === "_id" ? "id" : field
-      )}`,
-    }))
-  );
+  const mainColumns: ColumnConfig[] = fields.map((field) => {
+    const type = schemaPaths[field]?.instance || "string";
+
+    return {
+      headerName: capitalize(field === "_id" ? "id" : (field as string)),
+      field: field === "_id" ? "id" : (field as string),
+      ...(filterFields.includes(field) ? { type: mapMongooseTypeToFrontendType(type) } : {}),
+    }
+  });
+
+  const referenceColumns: ColumnConfig[] = references.flatMap((ref) => {
+    const { field: refField, fields: refFields, filterFields: refFilterFields = [] } = ref;
+    return refFields.map((refFieldName) => {
+      const type = schemaPaths[refField]?.instance || "string";
+
+      // We'd like to construct a field name like "repository-name" or "author-id"
+      const constructFieldName = refField +
+        REFERENCE_FIELD_SEPARATOR +
+        (refFieldName === "_id" ? "id" : refFieldName);
+
+      return {
+        headerName: `${capitalize(refField as string)} ${capitalize(
+          refFieldName === "_id" ? "id" : refFieldName
+        )}`,
+        field: constructFieldName,
+        ...(refFilterFields.includes(refFieldName) ? { type: mapMongooseTypeToFrontendType(type) } : {}),
+      }
+
+      // In future, we can add extra logic to handle reference fields
+      // This is commented out because the frontend ag-grid table free version does not support reference fields
+      //
+      // return {
+      //   headerName: `${capitalize(ref.field as string)} ${capitalize(
+      //     field === "_id" ? "id" : field
+      //   )}`,
+      //   field: `${ref.field}-${field === "_id" ? "id" : field}`,
+      //   type: 'reference', // Mark as a reference field
+      //   referenceCollection: ref.collectionName, // Include the reference collection name
+      //   referenceKey: field, // Reference key to group by
+      // }
+    })
+  });
 
   return mainColumns.concat(referenceColumns);
 };
@@ -144,12 +202,28 @@ const getPopulates = (references: ReferenceConfig<Document>[]): PopulateConfig[]
   }));
 };
 
+// Helper: Validate collectionName
+export const isValidCollectionName = (name: string): name is CollectionName => {
+  return Object.values(CollectionName).includes(name as CollectionName);
+};
+
 // Capitalize Helper
 const capitalize = (str: string): string => str.charAt(0).toUpperCase() + str.slice(1);
 
-// Helper: Validate collectionName
-const isValidCollectionName = (name: string): name is CollectionName => {
-  return Object.values(CollectionName).includes(name as CollectionName);
-};
+
+const mapMongooseTypeToFrontendType = (mongooseType: string): string => {
+  switch (mongooseType) {
+    case "String":
+      return "text";
+    case "Number":
+      return "number";
+    case "Date":
+      return "date";
+    case "Boolean":
+      return "boolean";
+    default:
+      return "text"; // Default to text for unknown types
+  }
+}
 
 export default dataViewer;

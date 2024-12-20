@@ -9,7 +9,7 @@ import { checkAuthStatus, logout } from "../controllers/api/authController";
 import { syncOrganizationsData, syncRepositoriesData } from "../controllers/api/githubSyncController";
 import { getOrganizations } from "../controllers/api/organizationsController";
 import { getRepositoriesForOrg, getRepositoryDetails } from "../controllers/api/organizations/repositoriesController";
-import { getCollectionsData } from "../controllers/api/dataViewerController";
+import { getCollectionsData, getDistinctValues } from "../controllers/api/dataViewerController";
 
 // Initialize the router
 const router: Router = Router();
@@ -58,6 +58,12 @@ router.get(
   authenticateUser,
   getCollectionsData,
   injectPaginationMetadata
+);
+
+router.get(
+  '/:integration/distinct-values/:collection/:field',
+  authenticateUser,
+  getDistinctValues
 );
 
 export default router;
