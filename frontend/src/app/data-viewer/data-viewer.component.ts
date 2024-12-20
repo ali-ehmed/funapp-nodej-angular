@@ -118,8 +118,8 @@ export class DataViewerComponent implements OnInit {
       page: Math.floor(params.startRow / this.pageSize) + 1, // Calculate page number
       perPage: this.pageSize, // Number of rows per page
       filters: this.constructFilters(filterModel), // Convert AG Grid filter model to server format
-      // sort: sortModel.length > 0 ? sortModel[0].colId : null, // Sort column
-      // sortOrder: sortModel.length > 0 ? sortModel[0].sort : null, // Sort order
+      sort: sortModel.length > 0 ? sortModel[0].colId : null, // Sort column
+      sortOrder: sortModel.length > 0 ? sortModel[0].sort : null, // Sort order
     };
   }
 

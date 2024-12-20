@@ -95,7 +95,7 @@ const parseFilters = (Model: Model<Document>, filters: string) => {
           query[field] = condition; // Handle non-date conditions
         }
       } else {
-        query[field] = condition; // Non-date fields remain unchanged
+        query[field === "id" ? "_id" : field] = condition; // Non-date fields remain unchanged
       }
     }
   }
@@ -108,7 +108,18 @@ const buildSortQuery = (sortAttr: string | undefined, sortOrder: string, searchQ
   const sort: Record<string, any> = {};
 
   if (sortAttr) {
-    sort[sortAttr] = sortOrder.toLowerCase() === "desc" ? -1 : 1;
+    // Check if the sortAttr contains REFERENCE_FIELD_SEPARATOR
+    if (sortAttr.includes(REFERENCE_FIELD_SEPARATOR)) {
+      const [ref, refField] = sortAttr.split(REFERENCE_FIELD_SEPARATOR);
+      if (refField === "id") {
+        sort[`${ref}._id`] = sortOrder.toLowerCase() === "desc" ? -1 : 1;
+      } else {
+        sort[`${ref}.${refField}`] = sortOrder.toLowerCase() === "desc" ? -1 : 1;
+      }
+    } else {
+      // If no REFERENCE_FIELD_SEPARATOR, use the field as is
+      sort[sortAttr === "id" ? "_id" : sortAttr] = sortOrder.toLowerCase() === "desc" ? -1 : 1;
+    }
   }
 
   if (searchQuery.$text) {
@@ -135,34 +146,46 @@ const buildColumns = (modelConfig: ModelConfig<Document>): ColumnConfig[] => {
   });
 
   const referenceColumns: ColumnConfig[] = references.flatMap((ref) => {
-    const { field: refField, fields: refFields, filterFields: refFilterFields = [] } = ref;
-    return refFields.map((refFieldName) => {
-      const type = schemaPaths[refField]?.instance || "string";
+    const {
+      field: refField,
+      fields: refCollectionFields,
+      filterFields: refFilterFields = [],
+    } = ref;
 
+    return refCollectionFields.map((refCollectionFieldName) => {
       // We'd like to construct a field name like "repository-name" or "author-id"
       const constructFieldName = refField +
         REFERENCE_FIELD_SEPARATOR +
-        (refFieldName === "_id" ? "id" : refFieldName);
+        (refCollectionFieldName === "_id" ? "id" : refCollectionFieldName);
 
+      const type = schemaPaths[refField]?.instance || "string";
       return {
         headerName: `${capitalize(refField as string)} ${capitalize(
-          refFieldName === "_id" ? "id" : refFieldName
+          refCollectionFieldName === "_id" ? "id" : refCollectionFieldName
         )}`,
         field: constructFieldName,
-        ...(refFilterFields.includes(refFieldName) ? { type: mapMongooseTypeToFrontendType(type) } : {}),
+        ...(refFilterFields.includes(refCollectionFieldName) ? { type: mapMongooseTypeToFrontendType(type) } : {}),
       }
 
       // In future, we can add extra logic to handle reference fields
       // This is commented out because the frontend ag-grid table free version does not support reference fields
       //
       // return {
-      //   headerName: `${capitalize(ref.field as string)} ${capitalize(
-      //     field === "_id" ? "id" : field
+      //   headerName: `${capitalize(refField as string)} ${capitalize(
+      //     refCollectionFieldName === "_id" ? "id" : refCollectionFieldName
       //   )}`,
-      //   field: `${ref.field}-${field === "_id" ? "id" : field}`,
-      //   type: 'reference', // Mark as a reference field
-      //   referenceCollection: ref.collectionName, // Include the reference collection name
-      //   referenceKey: field, // Reference key to group by
+      //   field: constructFieldName,
+      //   ...(
+      //     refFilterFields.includes(refCollectionFieldName)
+      //     ?
+      //       {
+      //         type: 'reference',
+      //         referenceCollection: ref.collectionName,
+      //         referenceKey: refField,
+      //       }
+      //     :
+      //       {}
+      //   ),
       // }
     })
   });

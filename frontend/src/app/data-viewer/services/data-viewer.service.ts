@@ -5,6 +5,15 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
+interface CollectionApiQueryParams {
+  page?: number;
+  perPage?: number;
+  search?: string;
+  filters?: any;
+  sort?: string;
+  sortOrder?: string;
+}
+
 @Injectable()
 export class DataViewerService {
   private apiBaseUrl = environment.apiUrl;
@@ -19,9 +28,9 @@ export class DataViewerService {
   fetchCollectionData(
     integration: string,
     collection: string,
-    params?: { page?: number; perPage?: number; search?: string, filters?: any }
+    params?: CollectionApiQueryParams
   ): Observable<any> {
-    const { page = 1, perPage = 10, search = '', filters = {} } = params || {};
+    const { page = 1, perPage = 10, search = '', filters = {}, sort = '', sortOrder = 'asc' } = params || {};
     // Set loading state to true
     this.loadingDataSubject.next(true);
 
@@ -36,6 +45,8 @@ export class DataViewerService {
             perPage: perPage.toString(),
             search,
             filters: JSON.stringify(filters),
+            sort,
+            sortOrder
           },
         }
       )
