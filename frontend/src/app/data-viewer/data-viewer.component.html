@@ -45,13 +45,20 @@
 
 <div class="content" style="width: 100%; height: 100%;">
     <ag-grid-angular
-        [pagination]="false"
-        [domLayout]="'autoHeight'"
-        style="width: 100%; height: 100%;"
-        class="ag-theme-quartz"
-        [rowData]="rowData"
+        [cacheBlockSize]="pageSize"
+        [cacheOverflowSize]="2"
         [columnDefs]="columnDefs"
+        class="ag-theme-quartz"
         [defaultColDef]="defaultColDef"
-        [loading]="synchronizingData || loadingData"
-    ></ag-grid-angular>
+        [domLayout]="'autoHeight'"
+        [enableCellTextSelection]="true"
+        (gridReady)="onGridReady($event)"
+        [infiniteInitialRowCount]="1"
+        [maxBlocksInCache]="pageSize"
+        [maxConcurrentDatasourceRequests]="2"
+        [pagination]="true"
+        [paginationPageSize]="pageSize"
+        [paginationPageSizeSelector]="[3, 5, 10]"
+        [rowModelType]="'infinite'">
+    </ag-grid-angular>
 </div>

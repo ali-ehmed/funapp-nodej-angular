@@ -9,11 +9,9 @@ import { environment } from '../../../environments/environment';
 export class DataViewerService {
   private apiBaseUrl = environment.apiUrl;
   private loadingDataSubject = new BehaviorSubject<boolean>(false);
-  private dataViewerSubject = new BehaviorSubject<any | null>(null);
 
   // Observables
   loadingData$ = this.loadingDataSubject.asObservable();
-  dataViewer$ = this.dataViewerSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
@@ -21,15 +19,14 @@ export class DataViewerService {
   fetchCollectionData(
     integration: string,
     collection: string,
-    page: number = 1,
-    perPage: number = 10,
-    search: string = ''
-  ): void {
+    params?: { page?: number; perPage?: number; search?: string, filters?: any }
+  ): Observable<any> {
+    const { page = 1, perPage = 10, search = '', filters = {} } = params || {};
     // Set loading state to true
     this.loadingDataSubject.next(true);
 
     // API call
-    this.http
+    return this.http
       .get<any>(
         `${this.apiBaseUrl}/api/${integration}/data-viewer/${collection}`,
         {
@@ -38,28 +35,27 @@ export class DataViewerService {
             page: page.toString(),
             perPage: perPage.toString(),
             search,
+            filters: JSON.stringify(filters),
           },
         }
       )
       .pipe(
-        tap((response) => {
-          // Assign fetched data to dataViewerSubject
-          this.dataViewerSubject.next(response);
+        tap(() => {
           // Set loading state to false
           this.loadingDataSubject.next(false);
         })
       )
-      .subscribe({
-        error: (err) => {
-          console.error('Error fetching collection data:', err);
-          this.loadingDataSubject.next(false); // Ensure loading is false on error
-        },
-      });
   }
 
-  // Get collection data observable
-  getCollectionData(): Observable<any> {
-    return this.dataViewer$;
+  getDistinctValues(collection: string, field: string): Observable<any> {
+    this.loadingDataSubject.next(true);
+    return this.http
+      .get<any>(`${this.apiBaseUrl}/api/${collection}/distinct-values/${field}`)
+      .pipe(
+        tap(() => {
+          this.loadingDataSubject.next(false);
+        })
+      );
   }
 
   // Check if collection data is loading
