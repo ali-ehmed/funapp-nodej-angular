@@ -1,7 +1,8 @@
-import mongoose, { Document, Model, Schema } from "mongoose";
+import mongoose, { Document, Model, ObjectId, Schema } from "mongoose";
 
 // Interface for RepositoryCollaborator Document
 export interface IRepositoryCollaborator extends Document {
+  _id: mongoose.Types.ObjectId;
   avatarUrl?: string;
   commits: mongoose.Types.ObjectId[];
   githubCollaboratorId: string;

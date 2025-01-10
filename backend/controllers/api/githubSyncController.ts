@@ -15,6 +15,8 @@ import { currentUser } from "../helpers/currentUser";
 
 import { GithubSyncResponse } from "../types/api/githubSyncControllerTypes";
 
+import { compact, uniq } from "lodash";
+
 // GET /api/orgs/sync-organizations-data
 export const syncOrganizationsData = async (req: Request, res: GithubSyncResponse): Promise<void> => {
   try {
@@ -103,54 +105,133 @@ export const syncRepositoriesData = async (req: Request, res: GithubSyncResponse
       const orgName = org.name;
 
       try {
-        // Fetch collaborators
-        const collaborators = await github.getRepoCollaborators(orgName, repository.name);
-        for (const collaborator of collaborators) {
-          const collaboratorUserInfoData = await github.getUserInfo(collaborator.login);
-          const repoCollaborator = await RepositoryCollaborator.createOrUpdateCollaborator({
-            avatar_url: collaboratorUserInfoData.avatar_url,
-            name: collaboratorUserInfoData.name,
-          }, {
-            id: collaborator.id.toString(),
-            login: collaborator.login,
-          },
-          new mongoose.Types.ObjectId(`${repository._id}`),
-          new mongoose.Types.ObjectId(`${repository.organization._id}`)
-        );
+        const commits = await github.getRepoAllCommits(orgName, repository.name);
+        const pullRequests = await github.getRepoPRs(orgName, repository.name);
+        const issues = await github.getRepoIssues(orgName, repository.name);
 
-          // Fetch and store commits
-          const commits = await github.getRepoCollaboratorAllCommits(orgName, repository.name, repoCollaborator.username);
-          for (const commitData of commits) {
+        // Extract users from commits, pull requests, and issues
+        const commitAuthors = commits.map(commit => commit.author?.login).filter(Boolean);
+        const prCreators = pullRequests.map(pr => pr.user?.login).filter(Boolean);
+        const issueAssignees = issues.flatMap(issue => issue.assignees?.map(a => a.login) || []);
+
+        // Combine all users into a single array
+        const allUsers = [...commitAuthors, ...prCreators, ...issueAssignees];
+
+        const usernameToIdMap: Record<string, string> = {};
+
+        for (const username of uniq(compact(allUsers))) {
+          const userInfo = await github.getUserInfo(username);
+
+          const collaboratorRecord = await RepositoryCollaborator.createOrUpdateCollaborator(
+            {
+              avatar_url: userInfo.avatar_url,
+              name: userInfo.name,
+            },
+            {
+              id: userInfo.id.toString(),
+              login: username,
+            },
+            new mongoose.Types.ObjectId(`${repository._id}`),
+            new mongoose.Types.ObjectId(`${repository.organization._id}`)
+          );
+
+          usernameToIdMap[username] = collaboratorRecord._id.toString();
+        }
+
+        for (const commit of commits) {
+          if (!commit.author) {
+            continue;
+          }
+
+          const collaboratorId = usernameToIdMap[commit.author.login];
+          if (collaboratorId) {
             await Commit.createOrUpdateCommit(
-              commitData,
-              new mongoose.Types.ObjectId(`${repoCollaborator._id}`),
-              new mongoose.Types.ObjectId(`${repository._id}`),
-              new mongoose.Types.ObjectId(`${repository.organization._id}`)
-            );
-          }
-
-          // Fetch and store pull requests
-          const pullRequests = await github.getRepoCollaboratorPRs(orgName, repository.name, repoCollaborator.username);
-          for (const prData of pullRequests) {
-            await PullRequest.createOrUpdatePullRequest(
-              prData,
-              new mongoose.Types.ObjectId(`${repoCollaborator._id}`),
-              new mongoose.Types.ObjectId(`${repository._id}`),
-              new mongoose.Types.ObjectId(`${repository.organization._id}`)
-            );
-          }
-
-          // Fetch and store issues
-          const issues = await github.getRepoCollaboratorAssignedIssues(orgName, repository.name, repoCollaborator.username);
-          for (const issueData of issues) {
-            await Issue.createOrUpdateIssue(
-              issueData,
-              new mongoose.Types.ObjectId(`${repoCollaborator._id}`),
-              new mongoose.Types.ObjectId(`${repository._id}`),
-              new mongoose.Types.ObjectId(`${repository.organization._id}`)
+                commit,
+                new mongoose.Types.ObjectId(`${collaboratorId}`),
+                new mongoose.Types.ObjectId(`${repository._id}`),
+                new mongoose.Types.ObjectId(`${repository.organization._id}`),
             );
           }
         }
+
+        for (const pr of pullRequests) {
+          if (!pr.user) {
+            continue;
+          }
+
+          const collaboratorId = usernameToIdMap[pr.user.login];
+          if (collaboratorId) {
+            await PullRequest.createOrUpdatePullRequest(
+              pr,
+              new mongoose.Types.ObjectId(`${collaboratorId}`),
+              new mongoose.Types.ObjectId(`${repository._id}`),
+              new mongoose.Types.ObjectId(`${repository.organization._id}`),
+            );
+          }
+        }
+
+        for (const issue of issues) {
+          for (const assignee of issue.assignees || []) {
+            const collaboratorId = usernameToIdMap[assignee.login];
+            if (collaboratorId) {
+              await Issue.createOrUpdateIssue(
+                issue,
+                new mongoose.Types.ObjectId(`${collaboratorId}`),
+                new mongoose.Types.ObjectId(`${repository._id}`),
+                new mongoose.Types.ObjectId(`${repository.organization._id}`),
+              );
+            }
+          }
+        }
+
+        // // Fetch collaborators
+        // const collaborators = await github.getRepoCollaborators(orgName, repository.name);
+        // for (const collaborator of collaborators) {
+        //   const collaboratorUserInfoData = await github.getUserInfo(collaborator.login);
+        //   const repoCollaborator = await RepositoryCollaborator.createOrUpdateCollaborator({
+        //       avatar_url: collaboratorUserInfoData.avatar_url,
+        //       name: collaboratorUserInfoData.name,
+        //     }, {
+        //       id: collaborator.id.toString(),
+        //       login: collaborator.login,
+        //     },
+        //     new mongoose.Types.ObjectId(`${repository._id}`),
+        //     new mongoose.Types.ObjectId(`${repository.organization._id}`)
+        //   );
+
+        //   // Fetch and store commits
+        //   const commits = await github.getRepoCollaboratorAllCommits(orgName, repository.name, repoCollaborator.username);
+        //   for (const commitData of commits) {
+        //     await Commit.createOrUpdateCommit(
+        //       commitData,
+        //       new mongoose.Types.ObjectId(`${repoCollaborator._id}`),
+        //       new mongoose.Types.ObjectId(`${repository._id}`),
+        //       new mongoose.Types.ObjectId(`${repository.organization._id}`)
+        //     );
+        //   }
+
+        //   // Fetch and store pull requests
+        //   const pullRequests = await github.getRepoCollaboratorPRs(orgName, repository.name, repoCollaborator.username);
+        //   for (const prData of pullRequests) {
+        //     await PullRequest.createOrUpdatePullRequest(
+        //       prData,
+        //       new mongoose.Types.ObjectId(`${repoCollaborator._id}`),
+        //       new mongoose.Types.ObjectId(`${repository._id}`),
+        //       new mongoose.Types.ObjectId(`${repository.organization._id}`)
+        //     );
+        //   }
+
+        //   // Fetch and store issues
+        //   const issues = await github.getRepoCollaboratorAssignedIssues(orgName, repository.name, repoCollaborator.username);
+        //   for (const issueData of issues) {
+        //     await Issue.createOrUpdateIssue(
+        //       issueData,
+        //       new mongoose.Types.ObjectId(`${repoCollaborator._id}`),
+        //       new mongoose.Types.ObjectId(`${repository._id}`),
+        //       new mongoose.Types.ObjectId(`${repository.organization._id}`)
+        //     );
+        //   }
+        // }
       } catch (error) {
         if (error instanceof GithubServiceError && error.status === 403) {
           console.error("Error fetching GitHub info:", error.message);

@@ -135,6 +135,32 @@ export class GithubService {
     }
   }
 
+  async getRepoAllCommits(
+    org: string,
+    repo: string,
+  ): Promise<CommitsResponse> {
+    try {
+      const branches = await this.getRepoBranches(org, repo);
+
+      let allCommits: CommitsResponse = [];
+      for (const branch of branches) {
+        const commits = await this.octokit.paginate(
+          this.octokit.rest.repos.listCommits,
+          { owner: org, repo, sha: branch.name }
+        );
+        allCommits = allCommits.concat(commits);
+      }
+
+      return allCommits;
+    } catch (error: any) {
+      throw new GithubServiceError(
+        `Failed to fetch repo commits from ${org}/${repo}.`,
+        error.status,
+        error.response?.data
+      );
+    }
+  }
+
   // Fetch pull requests for a collaborator
   async getRepoCollaboratorPRs(
     org: string,
@@ -156,6 +182,24 @@ export class GithubService {
     }
   }
 
+   async getRepoPRs(
+    org: string,
+    repo: string,
+  ): Promise<PullRequestsResponse> {
+    try {
+      return await this.octokit.paginate(
+        this.octokit.rest.pulls.list,
+        { owner: org, repo }
+      );
+    } catch (error: any) {
+      throw new GithubServiceError(
+        `Failed to fetch repo PRs from ${org}/${repo}.`,
+        error.status,
+        error.response?.data
+      );
+    }
+  }
+
   // Fetch issues assigned to a collaborator
   async getRepoCollaboratorAssignedIssues(
     org: string,
@@ -171,6 +215,24 @@ export class GithubService {
     } catch (error: any) {
       throw new GithubServiceError(
         `Failed to fetch issues assigned to ${collaboratorLogin} in ${org}/${repo}.`,
+        error.status,
+        error.response?.data
+      );
+    }
+  }
+
+  async getRepoIssues(
+    org: string,
+    repo: string,
+  ): Promise<IssuesResponse> {
+    try {
+      return await this.octokit.paginate(this.octokit.rest.issues.listForRepo, {
+        owner: org,
+        repo,
+      });
+    } catch (error: any) {
+      throw new GithubServiceError(
+        `Failed to fetch issues in ${org}/${repo}.`,
         error.status,
         error.response?.data
       );
