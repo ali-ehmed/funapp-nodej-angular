@@ -1,6 +1,6 @@
-# Sredio Test Task - Connect GitHub using OAuth
+# Fun app - Connect GitHub using OAuth
 
-This is a test task for **Sredio**. It involves connecting to GitHub using OAuth to authenticate a user, retrieve their GitHub profile data, and use that data for authentication and management in the backend.
+This is a fun app to showcase my nodeJS and AngularJS skills. It involves connecting to GitHub using OAuth to authenticate a user, retrieve their GitHub profile data, and use that data for authentication and management in the backend.
 
 ## Tech Stack
 
