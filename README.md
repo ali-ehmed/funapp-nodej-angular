@@ -34,7 +34,7 @@ Docker is used to run the MongoDB server, so you don't need to install it locall
    First, clone the repository:
 
    ```bash
-   git clone git@github.com:ali-ehmed/sredio-test-task.git
+   git clone git@github.com:ali-ehmed/funapp-nodej-angular.git
    ```
 
 2. **Install Dependencies**
